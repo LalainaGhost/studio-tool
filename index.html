@@ -3,201 +3,640 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Studio Tool</title>
+<title>ABDOUL VIDEO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
-  :root{--bg:#0e0e0e;--surface:#161616;--surface2:#1e1e1e;--border:#2a2a2a;--accent:#c8f060;--accent2:#60d4f0;--text:#f0f0f0;--muted:#888;--danger:#f06060;--warn:#f0a060;}
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding:32px 24px;}
-  header{display:flex;align-items:center;gap:16px;margin-bottom:40px;flex-wrap:wrap;}
-  .logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;}
-  .logo span{color:var(--accent);}
-  .chain-pills{display:flex;gap:8px;margin-left:auto;}
-  .pill{font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s;background:transparent;}
-  .pill.active,.pill:hover{border-color:var(--accent);color:var(--accent);background:rgba(200,240,96,0.07);}
-  .layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1100px;margin:0 auto;}
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
-  .panel-header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);}
-  .step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#0e0e0e;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .panel-title{font-size:13px;font-weight:600;letter-spacing:0.02em;}
-  .panel-body{padding:20px;}
-  label{display:block;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
-  textarea,input[type=text]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 14px;resize:vertical;outline:none;transition:border-color 0.15s;}
-  textarea:focus,input[type=text]:focus{border-color:var(--accent);}
-  textarea{min-height:140px;line-height:1.6;}
-  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;margin-top:14px;}
-  .btn-primary{background:var(--accent);color:#0e0e0e;}
-  .btn-primary:hover{background:#d4f570;transform:translateY(-1px);}
-  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-  .status-box{border-radius:10px;padding:12px 14px;font-size:13px;margin-top:14px;display:none;line-height:1.6;}
-  
-  .status-ok{display:block;background:rgba(200,240,96,0.08);border:1px solid rgba(200,240,96,0.25);color:var(--accent);}
-  .status-warn{display:block;background:rgba(240,96,96,0.08);border:1px solid rgba(240,96,96,0.25);color:var(--danger);}
-  .result-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:12px;position:relative;}
-  .result-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
-  .result-text{font-size:14px;line-height:1.7;color:var(--text);}
-  .copy-btn{position:absolute;top:10px;right:10px;background:var(--border);border:none;border-radius:6px;padding:4px 10px;color:var(--muted);font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;transition:all 0.15s;}
-  .copy-btn:hover{background:var(--accent);color:#0e0e0e;}
-  .timecode{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--accent2);letter-spacing:0.05em;}
-  .save-row{display:grid;grid-template-columns:1fr 2fr 2fr 1fr;gap:12px;align-items:end;}
-  /* Historique */
-  .history-panel{grid-column:1/-1;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
-  .history-table{width:100%;border-collapse:collapse;font-size:13px;}
-  .history-table th{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);}
-  .history-table td{padding:10px 16px;border-bottom:1px solid rgba(42,42,42,0.5);vertical-align:middle;}
-  .history-table tr.data-row{cursor:pointer;}
-  .history-table tr.data-row:hover td{background:rgba(200,240,96,0.04);}
-  .history-table tr:last-child td{border-bottom:none;}
-  .chain-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:6px;font-weight:500;}
-  .c1{background:rgba(200,240,96,0.12);color:var(--accent);}
-  .c2{background:rgba(96,212,240,0.12);color:var(--accent2);}
-  .c3{background:rgba(240,160,96,0.12);color:var(--warn);}
-  .search-bar{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
-  .search-bar input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 12px;outline:none;width:240px;}
-  .search-bar input:focus{border-color:var(--accent);}
-  .empty-state{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
-  .loader{display:none;align-items:center;gap:8px;margin-top:14px;color:var(--muted);font-size:13px;}
-  .loader.visible{display:flex;}
-  .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:all 0.1s;}
-  .del-btn:hover{color:var(--danger);background:rgba(240,96,96,0.1);}
-  /* Detail drawer */
-  .detail-drawer{grid-column:1/-1;background:var(--surface);border:1px solid var(--accent);border-radius:16px;overflow:hidden;display:none;}
-  .detail-drawer.open{display:block;}
-  .detail-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
-  .detail-title{font-size:14px;font-weight:600;color:var(--accent);}
-  .close-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;}
-  .close-btn:hover{color:var(--text);}
-  .detail-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .detail-field{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;}
-  .detail-field.full{grid-column:1/-1;}
-  .detail-field-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
-  .detail-field-value{font-size:14px;line-height:1.7;color:var(--text);}
-  .detail-field-value.mono{font-family:'DM Mono',monospace;color:var(--accent2);}
-  .detail-field-value.title{font-weight:600;color:var(--accent);}
-  /* API Modal */
-  .api-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:1000;}
-  .api-modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:460px;width:90%;}
-  .api-modal h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;}
-  .api-modal h2 span{color:var(--accent);}
-  .api-modal p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px;}
-  .api-modal a{color:var(--accent2);}
-  .api-key-bar{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:4px 4px 4px 14px;margin-bottom:12px;}
-  .api-key-bar input{flex:1;background:none;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;}
-  .api-key-bar button{background:var(--accent);border:none;border-radius:7px;padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#0e0e0e;cursor:pointer;}
-  .api-key-note{font-size:11px;color:var(--muted);line-height:1.6;}
-  .key-indicator{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;transition:all 0.15s;margin-left:8px;}
-  .key-indicator:hover{border-color:var(--accent);color:var(--accent);}
-  .key-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
-  .key-dot.off{background:var(--danger);}
-  @media(max-width:700px){.layout{grid-template-columns:1fr;}.save-row{grid-template-columns:1fr 1fr;}.detail-body{grid-template-columns:1fr;}}
+:root {
+  --bg:       #080808;
+  --s1:       #111111;
+  --s2:       #1a1a1a;
+  --s3:       #222222;
+  --border:   #2c2c2c;
+  --border2:  #3a3a3a;
+  --text:     #f0ede8;
+  --muted:    #666;
+  --muted2:   #444;
+
+  --c1:       #c8f060;   /* Instant Vanne — vert lime */
+  --c1b:      rgba(200,240,96,.08);
+  --c1bd:     rgba(200,240,96,.2);
+
+  --c2:       #60d4f0;   /* Dose du Rire — cyan */
+  --c2b:      rgba(96,212,240,.08);
+  --c2bd:     rgba(96,212,240,.2);
+
+  --c3:       #f0a060;   /* Rire Express — orange */
+  --c3b:      rgba(240,160,96,.08);
+  --c3bd:     rgba(240,160,96,.2);
+
+  --danger:   #f06060;
+  --ok:       #60f090;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── GRAIN TEXTURE ─────────────────────────────────────── */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:0; opacity:.4;
+}
+
+/* ── HEADER ────────────────────────────────────────────── */
+header {
+  position: sticky; top:0; z-index:100;
+  display: flex; align-items: center; gap: 20px;
+  padding: 0 28px;
+  height: 60px;
+  background: rgba(8,8,8,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 3px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.logo .dot { color: var(--c1); }
+
+.chain-tabs {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.ctab {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+  padding: 5px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+  text-transform: uppercase;
+}
+.ctab:hover       { border-color: var(--border2); color: var(--text); }
+.ctab.a1.active   { border-color: var(--c1bd); color: var(--c1); background: var(--c1b); }
+.ctab.a2.active   { border-color: var(--c2bd); color: var(--c2); background: var(--c2b); }
+.ctab.a3.active   { border-color: var(--c3bd); color: var(--c3); background: var(--c3b); }
+
+.key-btn {
+  display: flex; align-items: center; gap: 7px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 12px; cursor: pointer;
+  transition: all .15s; margin-left: 8px;
+}
+.key-btn:hover { border-color: var(--border2); color: var(--text); }
+.kdot { width:6px; height:6px; border-radius:50%; background:var(--danger); flex-shrink:0; }
+.kdot.on { background: var(--ok); }
+
+/* ── STATS BAR ─────────────────────────────────────────── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+  animation: fadeIn .4s ease;
+}
+.stat {
+  background: var(--s1);
+  padding: 14px 24px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; letter-spacing:.12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 1px; line-height:1;
+}
+.stat-val.c1 { color: var(--c1); }
+.stat-val.c2 { color: var(--c2); }
+.stat-val.c3 { color: var(--c3); }
+.stat-val.ct { color: var(--text); }
+
+/* ── MAIN LAYOUT ───────────────────────────────────────── */
+main {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 60px - 57px);
+}
+
+/* ── LEFT PANEL ────────────────────────────────────────── */
+.left {
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: sticky; top: 60px;
+  height: calc(100vh - 60px - 57px);
+  overflow-y: auto;
+}
+
+.panel-section {
+  border-bottom: 1px solid var(--border);
+  padding: 20px;
+}
+
+.section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; letter-spacing:.14em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.step-badge {
+  display: inline-flex; align-items:center; justify-content:center;
+  width:18px; height:18px; border-radius:50%;
+  font-size:9px; font-weight:600; margin-right:6px;
+  background: var(--s3); color: var(--muted);
+  font-family:'DM Mono',monospace;
+}
+.step-badge.active { background: var(--c1); color: #000; }
+
+input[type=text], textarea, select {
+  width:100%;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight:300;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color .15s;
+}
+input[type=text]:focus, textarea:focus { border-color: var(--border2); }
+textarea { min-height:110px; resize:vertical; line-height:1.6; }
+
+.input-row { margin-bottom: 10px; }
+.input-label {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:.1em; text-transform:uppercase;
+  color: var(--muted); margin-bottom:5px; display:block;
+}
+
+.btn-gen {
+  width:100%; padding:11px;
+  background: var(--c1); color:#000;
+  border:none; border-radius:6px;
+  font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition: all .15s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin-top:12px;
+}
+.btn-gen:hover { background:#d4f570; transform:translateY(-1px); }
+.btn-gen:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+
+.btn-save {
+  width:100%; padding:10px;
+  background: transparent; color: var(--ok);
+  border: 1px solid rgba(96,240,144,.25);
+  border-radius:6px;
+  font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
+  cursor:pointer; transition: all .15s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin-top:10px;
+}
+.btn-save:hover { background: rgba(96,240,144,.07); border-color:rgba(96,240,144,.4); }
+.btn-save:disabled { opacity:.35; cursor:not-allowed; }
+
+.loader {
+  display:none; align-items:center; gap:8px;
+  margin-top:10px; color:var(--muted); font-size:12px;
+}
+.loader.on { display:flex; }
+.spin {
+  width:14px; height:14px;
+  border:2px solid var(--border2);
+  border-top-color:var(--c1);
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg);} }
+
+/* ── RESULT CARDS ──────────────────────────────────────── */
+.result-card {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius:8px; padding:12px;
+  margin-top:10px; position:relative;
+}
+.result-card.highlight { border-color: var(--c1bd); }
+.r-label {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:6px;
+}
+.r-value { font-size:13px; line-height:1.7; color:var(--text); }
+.r-value.bold { font-weight:600; color:var(--c1); font-size:14px; }
+.r-value.mono { font-family:'DM Mono',monospace; color:var(--c2); font-size:13px; }
+.copy-btn {
+  position:absolute; top:8px; right:8px;
+  background:var(--s3); border:none;
+  border-radius:4px; padding:3px 9px;
+  color:var(--muted); font-size:10px;
+  font-family:'DM Mono',monospace; cursor:pointer; transition:all .15s;
+}
+.copy-btn:hover { background:var(--c1); color:#000; }
+
+.toast {
+  position:fixed; bottom:24px; right:24px; z-index:999;
+  background:var(--s3); border:1px solid var(--border2);
+  border-radius:8px; padding:10px 18px;
+  font-size:13px; color:var(--ok);
+  display:none; animation: fadeIn .2s ease;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px);} to{opacity:1;transform:translateY(0);} }
+
+/* ── STATUS ────────────────────────────────────────────── */
+.status {
+  border-radius:6px; padding:10px 12px;
+  font-size:12px; line-height:1.6; margin-top:10px;
+  display:none;
+}
+.status.ok  { display:block; background:rgba(96,240,144,.07); border:1px solid rgba(96,240,144,.2); color:var(--ok); }
+.status.err { display:block; background:rgba(240,96,96,.07); border:1px solid rgba(240,96,96,.2); color:var(--danger); }
+.status.warn{ display:block; background:rgba(240,160,96,.07); border:1px solid rgba(240,160,96,.2); color:var(--c3); }
+
+/* ── RIGHT PANEL — TABLE ───────────────────────────────── */
+.right {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.table-toolbar {
+  display:flex; align-items:center; gap:12px;
+  padding:14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s1);
+  flex-shrink:0;
+}
+
+.search-wrap {
+  position:relative; flex:1;
+}
+.search-wrap input {
+  padding-left: 32px; font-size:13px;
+}
+.search-ico {
+  position:absolute; left:10px; top:50%;
+  transform:translateY(-50%);
+  color:var(--muted); font-size:13px; pointer-events:none;
+}
+
+.filter-pills { display:flex; gap:6px; }
+.fpill {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:.08em; text-transform:uppercase;
+  padding:4px 12px; border-radius:4px;
+  border:1px solid var(--border); color:var(--muted);
+  background:transparent; cursor:pointer; transition:all .15s;
+}
+.fpill:hover { color:var(--text); border-color:var(--border2); }
+.fpill.f1.on { color:var(--c1); border-color:var(--c1bd); background:var(--c1b); }
+.fpill.f2.on { color:var(--c2); border-color:var(--c2bd); background:var(--c2b); }
+.fpill.f3.on { color:var(--c3); border-color:var(--c3bd); background:var(--c3b); }
+.fpill.fa.on { color:var(--text); border-color:var(--border2); background:var(--s3); }
+
+.refresh-btn {
+  font-family:'DM Mono',monospace; font-size:10px;
+  padding:5px 12px; border-radius:4px;
+  border:1px solid var(--border); color:var(--muted);
+  background:transparent; cursor:pointer; transition:all .15s;
+}
+.refresh-btn:hover { color:var(--text); border-color:var(--border2); }
+
+/* ── TABLE ─────────────────────────────────────────────── */
+.table-scroll { overflow-y:auto; flex:1; }
+
+table {
+  width:100%; border-collapse:collapse;
+  font-size:13px;
+}
+thead th {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); padding:10px 16px;
+  text-align:left; border-bottom:1px solid var(--border);
+  background:var(--s1); position:sticky; top:0; z-index:2;
+}
+tbody tr { cursor:pointer; transition:background .1s; }
+tbody tr:hover td { background:rgba(255,255,255,.025); }
+tbody tr.selected td { background:rgba(200,240,96,.04); }
+td {
+  padding:10px 16px;
+  border-bottom:1px solid rgba(44,44,44,.6);
+  vertical-align:middle;
+}
+
+.chain-tag {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:.06em; padding:3px 9px;
+  border-radius:4px; font-weight:500;
+  text-transform:uppercase; white-space:nowrap;
+}
+.tag1 { background:var(--c1b); color:var(--c1); border:1px solid var(--c1bd); }
+.tag2 { background:var(--c2b); color:var(--c2); border:1px solid var(--c2bd); }
+.tag3 { background:var(--c3b); color:var(--c3); border:1px solid var(--c3bd); }
+
+.artist-cell { color:var(--muted); font-size:12px; }
+.title-cell  { color:var(--text); max-width:260px; }
+.new-title-cell { color:var(--c2); font-size:12px; max-width:220px; }
+.date-cell { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted2); white-space:nowrap; }
+.del-btn {
+  background:none; border:none; color:var(--muted2);
+  cursor:pointer; font-size:13px; padding:2px 6px;
+  border-radius:4px; transition:all .1s;
+}
+.del-btn:hover { color:var(--danger); background:rgba(240,96,96,.1); }
+
+/* ── DETAIL PANEL ──────────────────────────────────────── */
+.detail-overlay {
+  display:none; position:fixed; inset:0; z-index:200;
+  background:rgba(0,0,0,.7); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center;
+}
+.detail-overlay.open { display:flex; animation:fadeIn .2s ease; }
+.detail-box {
+  background:var(--s1);
+  border:1px solid var(--border2);
+  border-radius:14px; width:600px; max-width:92vw;
+  max-height:85vh; overflow-y:auto;
+}
+.detail-top {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 22px; border-bottom:1px solid var(--border);
+  position:sticky; top:0; background:var(--s1); z-index:1;
+}
+.detail-name {
+  font-family:'Bebas Neue',sans-serif; font-size:20px;
+  letter-spacing:2px;
+}
+.detail-close {
+  background:none; border:none; color:var(--muted);
+  font-size:20px; cursor:pointer; line-height:1;
+  transition:color .1s;
+}
+.detail-close:hover { color:var(--text); }
+.detail-content { padding:20px 22px; display:flex; flex-direction:column; gap:14px; }
+.d-field {
+  background:var(--s2); border:1px solid var(--border);
+  border-radius:8px; padding:12px 14px; position:relative;
+}
+.d-field.accent { border-color:var(--c1bd); }
+.d-label {
+  font-family:'DM Mono',monospace; font-size:9px;
+  letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:6px;
+}
+.d-value { font-size:13px; line-height:1.7; color:var(--text); }
+.d-value.title { color:var(--c1); font-weight:600; font-size:15px; }
+.d-value.mono  { font-family:'DM Mono',monospace; color:var(--c2); }
+.d-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+/* ── MODAL API ─────────────────────────────────────────── */
+.modal-overlay {
+  display:none; position:fixed; inset:0; z-index:300;
+  background:rgba(0,0,0,.85); align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; animation:fadeIn .2s ease; }
+.modal-box {
+  background:var(--s1); border:1px solid var(--border2);
+  border-radius:14px; padding:30px; width:440px; max-width:90vw;
+}
+.modal-title {
+  font-family:'Bebas Neue',sans-serif; font-size:22px;
+  letter-spacing:2px; margin-bottom:8px;
+}
+.modal-title span { color:var(--c1); }
+.modal-desc { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:18px; }
+.modal-desc a { color:var(--c2); text-decoration:none; }
+.key-input-row {
+  display:flex; gap:8px;
+  background:var(--s2); border:1px solid var(--border);
+  border-radius:8px; padding:4px 4px 4px 12px; margin-bottom:10px;
+}
+.key-input-row input {
+  flex:1; background:none; border:none; color:var(--text);
+  font-family:'DM Mono',monospace; font-size:12px; outline:none;
+}
+.key-input-row button {
+  background:var(--c1); border:none; border-radius:6px;
+  padding:7px 14px; font-family:'DM Sans',sans-serif;
+  font-size:12px; font-weight:600; color:#000; cursor:pointer;
+}
+.modal-note { font-size:11px; color:var(--muted2); line-height:1.6; }
+
+/* ── EMPTY STATE ───────────────────────────────────────── */
+.empty {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:60px 20px; gap:10px; color:var(--muted);
+}
+.empty-icon {
+  font-size:32px; opacity:.3;
+  font-family:'Bebas Neue',sans-serif; letter-spacing:3px;
+}
+.empty-text { font-size:13px; }
+
+/* ── CHECK HIGHLIGHT ──────────────────────────────────── */
+.check-box {
+  border-radius:6px; padding:9px 12px;
+  font-size:12px; line-height:1.6; margin-top:8px; display:none;
+}
+.check-box.ok  { display:block; background:rgba(96,240,144,.07); border:1px solid rgba(96,240,144,.2); color:var(--ok); }
+.check-box.bad { display:block; background:rgba(240,96,96,.07); border:1px solid rgba(240,96,96,.2); color:var(--danger); }
+
+/* ── SECTION DIVIDERS IN TABLE ─────────────────────────── */
+tr.section-divider td {
+  background: var(--s2);
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.section-divider-label {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:13px; letter-spacing:2px;
+}
+.sd1 { color:var(--c1); }
+.sd2 { color:var(--c2); }
+.sd3 { color:var(--c3); }
+
+@media(max-width:900px){
+  main { grid-template-columns:1fr; }
+  .left { position:static; height:auto; border-right:none; border-bottom:1px solid var(--border); }
+  .stats-bar { grid-template-columns:repeat(2,1fr); }
+}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">Studio<span>Tool</span></div>
-  <div class="chain-pills">
-    <button class="pill active" data-chain="1" onclick="selectChain(1)">Instant Vanne</button>
-    <button class="pill" data-chain="2" onclick="selectChain(2)">La Dose du Rire</button>
-    <button class="pill" data-chain="3" onclick="selectChain(3)">Rire Express</button>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL API KEY -->
+<div class="modal-overlay" id="modal-api">
+  <div class="modal-box">
+    <div class="modal-title">CLÉ <span>GROQ</span></div>
+    <div class="modal-desc">
+      100% gratuit, sans CB, disponible partout.<br>
+      Enregistrée dans ton navigateur — une seule fois.<br><br>
+      👉 <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> → Create API Key
+    </div>
+    <div class="key-input-row">
+      <input type="password" id="api-input" placeholder="gsk_...">
+      <button onclick="saveKey()">Sauvegarder</button>
+    </div>
+    <div class="modal-note">🔒 Stockée localement · 💚 Gratuit sans restriction géographique</div>
   </div>
-  <button class="key-indicator" onclick="showApiModal()" id="key-indicator">
-    <span class="key-dot off" id="key-dot"></span>
-    <span id="key-label">Clé API</span>
+</div>
+
+<!-- DETAIL OVERLAY -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+  <div class="detail-box" id="detail-box">
+    <div class="detail-top">
+      <div class="detail-name" id="detail-name">—</div>
+      <button class="detail-close" onclick="closeDetailBtn()">✕</button>
+    </div>
+    <div class="detail-content" id="detail-content"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">ABDOUL<span class="dot">.</span>VIDEO</div>
+  <div class="chain-tabs">
+    <button class="ctab a1 active" onclick="selectChain(1,this)">Instant Vanne</button>
+    <button class="ctab a2"        onclick="selectChain(2,this)">Dose du Rire</button>
+    <button class="ctab a3"        onclick="selectChain(3,this)">Rire Express</button>
+  </div>
+  <button class="key-btn" onclick="openModal()" id="key-btn">
+    <span class="kdot" id="kdot"></span>
+    <span id="klabel">API</span>
   </button>
 </header>
 
-<div class="api-modal-overlay" id="api-modal">
-  <div class="api-modal">
-    <h2>Clé API <span>Groq</span></h2>
-    <p>Groq est 100% gratuit, sans CB, disponible partout dans le monde.<br>
-    Sauvegardée dans ton navigateur — à taper une seule fois.<br><br>
-    👉 <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> → créer un compte → <strong>Create API Key</strong> → copier la clé.</p>
-    <div class="api-key-bar">
-      <input type="password" id="api-key-input" placeholder="gsk_..." autocomplete="off">
-      <button onclick="saveApiKey()">Enregistrer</button>
-    </div>
-    <div class="api-key-note">🔒 Stockée uniquement dans ton navigateur.<br>💚 Gratuit — sans CB, sans restriction géographique.</div>
-  </div>
+<!-- STATS -->
+<div class="stats-bar" id="stats-bar">
+  <div class="stat"><div class="stat-label">Total vidéos</div><div class="stat-val ct" id="st-total">—</div></div>
+  <div class="stat"><div class="stat-label">Instant Vanne</div><div class="stat-val c1" id="st-c1">—</div></div>
+  <div class="stat"><div class="stat-label">Dose du Rire</div><div class="stat-val c2" id="st-c2">—</div></div>
+  <div class="stat"><div class="stat-label">Rire Express</div><div class="stat-val c3" id="st-c3">—</div></div>
 </div>
 
-<div class="layout">
+<main>
 
-  <div class="panel">
-    <div class="panel-header"><div class="step-num">1</div><div class="panel-title">Vérifier si déjà fait</div></div>
-    <div class="panel-body">
-      <label>Titre ou artiste à rechercher</label>
-      <input type="text" id="search-input" placeholder="Ex: Waly Dia, La gifle, LRDP..." oninput="checkVideo(this.value)">
-      <div id="check-status" class="status-box"></div>
-    </div>
-  </div>
+  <!-- LEFT -->
+  <div class="left">
 
-  <div class="panel">
-    <div class="panel-header"><div class="step-num">2</div><div class="panel-title">Coller la transcription</div></div>
-    <div class="panel-body">
-      <label>Transcription YouTube</label>
-      <textarea id="transcription" placeholder="Colle ici la transcription copiée depuis YouTube..."></textarea>
-      <button class="btn btn-primary" id="gen-btn" onclick="generateContent()">⚡ Générer titre + voix off</button>
-      <div class="loader" id="loader"><div class="spinner"></div><span>Analyse en cours...</span></div>
-    </div>
-  </div>
-
-  <div class="panel" id="results-panel" style="display:none">
-    <div class="panel-header"><div class="step-num">3</div><div class="panel-title">Résultats générés</div></div>
-    <div class="panel-body" id="results-body"></div>
-  </div>
-
-  <div class="panel" id="save-panel" style="display:none">
-    <div class="panel-header"><div class="step-num">4</div><div class="panel-title">Sauvegarder dans le suivi</div></div>
-    <div class="panel-body">
-      <div class="save-row">
-        <div><label>Artiste</label><input type="text" id="save-artist" placeholder="Artiste"></div>
-        <div><label>Titre original</label><input type="text" id="save-original" placeholder="Titre original"></div>
-        <div><label>Nouveau titre</label><input type="text" id="save-newtitle" placeholder="Nouveau titre généré"></div>
-        <div><label>Chaîne</label><input type="text" id="save-chain" readonly></div>
+    <!-- STEP 1 -->
+    <div class="panel-section">
+      <div class="section-title"><span class="step-badge active">1</span>Vérifier doublon</div>
+      <div class="input-row">
+        <input type="text" id="check-input" placeholder="Artiste, titre, mot-clé..." oninput="checkDuplicate(this.value)">
       </div>
-      <button class="btn btn-primary" id="save-btn" onclick="saveVideo()">✅ Ajouter au suivi</button>
-      <div id="save-status" class="status-box"></div>
+      <div class="check-box" id="check-box"></div>
     </div>
-  </div>
 
-  <!-- DETAIL DRAWER -->
-  <div class="detail-drawer" id="detail-drawer">
-    <div class="detail-header">
-      <div class="detail-title" id="detail-title">Détails de la vidéo</div>
-      <button class="close-btn" onclick="closeDetail()">✕</button>
-    </div>
-    <div class="detail-body" id="detail-body"></div>
-  </div>
-
-  <!-- HISTORIQUE -->
-  <div class="history-panel">
-    <div class="panel-header">
-      <div class="panel-title">📋 Suivi des vidéos — Google Sheets</div>
-      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-        <span id="total-count" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">—</span>
-        <button class="pill" onclick="loadVideos()">↻ Actualiser</button>
+    <!-- STEP 2 -->
+    <div class="panel-section">
+      <div class="section-title"><span class="step-badge active">2</span>Transcription YouTube</div>
+      <div class="input-row">
+        <textarea id="transcription" placeholder="Colle la transcription copiée depuis YouTube (Afficher la transcription)..."></textarea>
       </div>
+      <button class="btn-gen" id="btn-gen" onclick="generate()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Générer titre + voix off
+      </button>
+      <div class="loader" id="loader"><div class="spin"></div> Analyse en cours…</div>
     </div>
-    <div class="search-bar">
-      <input type="text" id="history-search" placeholder="Rechercher..." oninput="filterHistory(this.value)">
-      <div class="chain-pills" style="margin-left:0">
-        <button class="pill active" data-filter="all" onclick="filterByChain('all',this)">Toutes</button>
-        <button class="pill" data-filter="Instant Vanne" onclick="filterByChain('Instant Vanne',this)">C1</button>
-        <button class="pill" data-filter="La Dose du Rire" onclick="filterByChain('La Dose du Rire',this)">C2</button>
-        <button class="pill" data-filter="Rire Express" onclick="filterByChain('Rire Express',this)">C3</button>
+
+    <!-- STEP 3 — Results -->
+    <div class="panel-section" id="results-section" style="display:none">
+      <div class="section-title"><span class="step-badge active">3</span>Résultats</div>
+      <div id="results-content"></div>
+    </div>
+
+    <!-- STEP 4 — Save -->
+    <div class="panel-section" id="save-section" style="display:none">
+      <div class="section-title"><span class="step-badge active">4</span>Sauvegarder</div>
+      <div class="input-row">
+        <span class="input-label">Artiste</span>
+        <input type="text" id="s-artist" placeholder="Artiste détecté">
       </div>
+      <div class="input-row">
+        <span class="input-label">Titre original</span>
+        <input type="text" id="s-original" placeholder="Titre de la vidéo YouTube">
+      </div>
+      <div class="input-row">
+        <span class="input-label">Nouveau titre</span>
+        <input type="text" id="s-newtitle" placeholder="Titre généré">
+      </div>
+      <div class="input-row">
+        <span class="input-label">Chaîne cible</span>
+        <input type="text" id="s-chain" readonly>
+      </div>
+      <button class="btn-save" id="btn-save" onclick="saveVideo()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Ajouter au suivi
+      </button>
+      <div class="status" id="save-status"></div>
     </div>
-    <div id="history-container"><div class="empty-state">⏳ Chargement depuis Google Sheets...</div></div>
+
   </div>
 
-</div>
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <span class="search-ico">⌕</span>
+        <input type="text" id="search" placeholder="Rechercher dans toutes les vidéos…" oninput="renderTable(this.value)">
+      </div>
+      <div class="filter-pills">
+        <button class="fpill fa on" data-f="all"            onclick="setFilter('all',this)">Toutes</button>
+        <button class="fpill f1"    data-f="Instant Vanne"  onclick="setFilter('Instant Vanne',this)">C1</button>
+        <button class="fpill f2"    data-f="La Dose du Rire" onclick="setFilter('La Dose du Rire',this)">C2</button>
+        <button class="fpill f3"    data-f="Rire Express"    onclick="setFilter('Rire Express',this)">C3</button>
+      </div>
+      <button class="refresh-btn" onclick="loadVideos()">↻ Sync</button>
+    </div>
+    <div class="table-scroll" id="table-scroll">
+      <div class="empty"><div class="empty-icon">ABDOUL.VIDEO</div><div class="empty-text">Chargement…</div></div>
+    </div>
+  </div>
+
+</main>
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVjqnXlxyd3VQPpGUz64CZEOyCSN1QREFKq8eo80fYPrqCkPVOEdpBUnLj6w6hJQgtCw/exec';
-const CHAIN_NAMES = {1:'Instant Vanne',2:'La Dose du Rire',3:'Rire Express'};
+const CHAINS = {1:'Instant Vanne', 2:'La Dose du Rire', 3:'Rire Express'};
+const TAG_CLASS = {'Instant Vanne':'tag1','La Dose du Rire':'tag2','Rire Express':'tag3'};
+const SD_CLASS   = {'Instant Vanne':'sd1', 'La Dose du Rire':'sd2', 'Rire Express':'sd3'};
+const CHAIN_ORDER = ['Instant Vanne','La Dose du Rire','Rire Express'];
+
 const PROMPT = `Ton rôle : Tu es un assistant expert en analyse de contenu humoristique, particulièrement pour les spectacles de stand-up. Tu es spécialisé dans l'extraction de timecodes, la création de titres accrocheurs dans un format précis, et la rédaction de contextes courts pour voix off.
 
 Format de réponse obligatoire :
@@ -205,11 +644,7 @@ Timecode : Toujours indiquer Début : [heure:minute:seconde] et Fin : [heure:min
 Titre : Créer un titre dans le format exact : [Sujet Principal] & [Sujet Secondaire] | [Nom de l'humoriste] Humour. Les sujets doivent être politiques, sociétaux ou "chocs".
 Contexte (voix off) : Rédiger un texte court sur le modèle : « Dans cette vidéo, [Nom de l'humoriste] [verbe d'action] avec humour [sujet/situation]. Bon visionnage et force à [Nom de l'humoriste]. »
 
-Consignes :
-Traite une seule transcription à la fois.
-Identifie toujours l'humoriste.
-Ne fais pas de commentaires supplémentaires.
-Sois concis et efficace.
+Consignes : Traite une seule transcription à la fois. Identifie toujours l'humoriste. Ne fais pas de commentaires supplémentaires. Sois concis et efficace.
 
 Exemples de titres :
 La Police & Les Banlieues | Dieudonné Humour
@@ -219,268 +654,299 @@ La Société & Les Réseaux | Elodie Poux Humour
 
 Voici la transcription :`;
 
-let currentChain=1, currentFilter='all', videos=[];
-let lastTimecode='', lastVoix='';
+let videos = [], currentChain = 1, currentFilter = 'all';
+let lastTimecode = '', lastVoix = '';
 
-// ── SHEETS ────────────────────────────────────────────────────────────────
-async function sheetsGet() {
-  const res = await fetch(SCRIPT_URL+'?action=getAll');
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
+// ── API KEY ────────────────────────────────────────────────────────────────
+const getKey = () => localStorage.getItem('av_groq_key') || '';
+function saveKey() {
+  const k = document.getElementById('api-input').value.trim();
+  if (!k.startsWith('gsk_')) { alert('La clé doit commencer par gsk_...'); return; }
+  localStorage.setItem('av_groq_key', k);
+  document.getElementById('modal-api').classList.remove('open');
+  updateKeyUI();
 }
-async function sheetsAdd(entry) {
-  await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'add',...entry})});
+function updateKeyUI() {
+  const k = getKey();
+  document.getElementById('kdot').classList.toggle('on', !!k);
+  document.getElementById('klabel').textContent = k ? 'gsk_••••' : 'API';
 }
-async function sheetsDelete(id) {
-  await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'delete',id})});
+function openModal() {
+  document.getElementById('api-input').value = getKey();
+  document.getElementById('modal-api').classList.add('open');
 }
-async function loadVideos() {
-  document.getElementById('history-container').innerHTML='<div class="empty-state">⏳ Chargement depuis Google Sheets...</div>';
-  try {
-    videos = await sheetsGet();
-    renderHistory();
-  } catch(e) {
-    document.getElementById('history-container').innerHTML='<div class="empty-state" style="color:var(--danger)">❌ Impossible de charger. Vérifie le Apps Script.</div>';
-  }
-}
-
-// ── CLÉ API ───────────────────────────────────────────────────────────────
-function getApiKey(){return localStorage.getItem('studio_api_key')||'';}
-function saveApiKey(){
-  const key=document.getElementById('api-key-input').value.trim();
-  if(!key.startsWith('gsk_')){alert('La clé Groq doit commencer par gsk_...');return;}
-  localStorage.setItem('studio_api_key',key);
-  document.getElementById('api-modal').style.display='none';
-  updateKeyIndicator();
-}
-function updateKeyIndicator(){
-  const key=getApiKey();
-  document.getElementById('key-dot').classList.toggle('off',!key);
-  document.getElementById('key-label').textContent=key?'gsk_••••':'Clé API';
-}
-function showApiModal(){
-  document.getElementById('api-key-input').value=getApiKey();
-  document.getElementById('api-modal').style.display='flex';
-}
-document.getElementById('api-modal').addEventListener('click',function(e){
-  if(e.target===this&&getApiKey())this.style.display='none';
+document.getElementById('modal-api').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-api') && getKey())
+    document.getElementById('modal-api').classList.remove('open');
 });
 
-// ── CHAÎNE ────────────────────────────────────────────────────────────────
-function selectChain(n){
-  currentChain=n;
-  document.querySelectorAll('.pill[data-chain]').forEach(p=>p.classList.toggle('active',parseInt(p.dataset.chain)===n));
-  document.getElementById('save-chain').value=CHAIN_NAMES[n];
+// ── CHAIN ──────────────────────────────────────────────────────────────────
+function selectChain(n, btn) {
+  currentChain = n;
+  document.querySelectorAll('.ctab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('s-chain').value = CHAINS[n];
 }
 
-// ── VÉRIFICATION ──────────────────────────────────────────────────────────
-function checkVideo(q){
-  const box=document.getElementById('check-status');
-  if(!q.trim()){box.className='status-box';return;}
-  const term=q.toLowerCase();
-  const matches=videos.filter(v=>
-    (v.artist||'').toLowerCase().includes(term)||
-    (v.original||'').toLowerCase().includes(term)||
-    (v.newtitle||'').toLowerCase().includes(term));
-  if(matches.length>0){
-    box.className='status-box status-warn';
-    box.innerHTML=`⚠️ <strong>${matches.length} vidéo(s) déjà faite(s)</strong> :<br>`+
-      matches.map(m=>`→ <em>${m.artist}</em> — "${m.original}" sur <strong>${m.chain}</strong> (${m.date})`).join('<br>');
-  } else if(q.length>2){
-    box.className='status-box status-ok';
-    box.innerHTML='✓ Pas de doublon — vidéo disponible !';
-  } else {box.className='status-box';}
+// ── SHEETS ─────────────────────────────────────────────────────────────────
+async function sheetsGet() {
+  const r = await fetch(SCRIPT_URL + '?action=getAll');
+  const d = await r.json();
+  return Array.isArray(d) ? d : [];
+}
+async function sheetsAdd(entry) {
+  await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action:'add',...entry}) });
+}
+async function sheetsDelete(id) {
+  await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action:'delete', id}) });
 }
 
-// ── GÉNÉRATION ────────────────────────────────────────────────────────────
-async function generateContent(){
-  const transcription=document.getElementById('transcription').value.trim();
-  if(!transcription){alert('Colle d\'abord la transcription !');return;}
-  const apiKey=getApiKey();
-  if(!apiKey){showApiModal();return;}
-  const btn=document.getElementById('gen-btn');
-  const loader=document.getElementById('loader');
-  btn.disabled=true; loader.classList.add('visible');
-  document.getElementById('results-panel').style.display='none';
-  document.getElementById('save-panel').style.display='none';
-  try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+async function loadVideos() {
+  document.getElementById('table-scroll').innerHTML =
+    '<div class="empty"><div class="empty-icon">↻</div><div class="empty-text">Synchronisation…</div></div>';
+  try {
+    videos = await sheetsGet();
+    updateStats();
+    renderTable();
+  } catch(e) {
+    document.getElementById('table-scroll').innerHTML =
+      '<div class="empty"><div class="empty-text" style="color:var(--danger)">❌ Connexion impossible au Sheets</div></div>';
+  }
+}
+
+function updateStats() {
+  const c = chain => videos.filter(v => v.chain === chain).length;
+  document.getElementById('st-total').textContent = videos.length;
+  document.getElementById('st-c1').textContent = c('Instant Vanne');
+  document.getElementById('st-c2').textContent = c('La Dose du Rire');
+  document.getElementById('st-c3').textContent = c('Rire Express');
+}
+
+// ── DUPLICATE CHECK ────────────────────────────────────────────────────────
+function checkDuplicate(q) {
+  const box = document.getElementById('check-box');
+  if (!q.trim()) { box.className = 'check-box'; return; }
+  const t = q.toLowerCase();
+  const hits = videos.filter(v =>
+    (v.artist||'').toLowerCase().includes(t) ||
+    (v.original||'').toLowerCase().includes(t) ||
+    (v.newtitle||'').toLowerCase().includes(t));
+  if (hits.length) {
+    box.className = 'check-box bad';
+    box.innerHTML = `⚠ ${hits.length} doublon(s) trouvé(s) :<br>` +
+      hits.map(h => `→ <em>${h.artist}</em> — "${(h.original||'').slice(0,50)}" · ${h.chain}`).join('<br>');
+  } else if (q.length > 2) {
+    box.className = 'check-box ok';
+    box.textContent = '✓ Aucun doublon — vidéo disponible';
+  } else { box.className = 'check-box'; }
+}
+
+// ── GENERATE ───────────────────────────────────────────────────────────────
+async function generate() {
+  const txt = document.getElementById('transcription').value.trim();
+  if (!txt) { toast('Colle d\'abord la transcription !'); return; }
+  const key = getKey();
+  if (!key) { openModal(); return; }
+  const btn = document.getElementById('btn-gen');
+  const ldr = document.getElementById('loader');
+  btn.disabled = true; ldr.classList.add('on');
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('save-section').style.display = 'none';
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1000,
-        messages:[{role:'user',content:PROMPT+'\n\n'+transcription}]})
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body: JSON.stringify({ model:'llama-3.3-70b-versatile', max_tokens:1000,
+        messages:[{role:'user', content: PROMPT+'\n\n'+txt}] })
     });
-    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`Erreur ${res.status}`);}
-    const data=await res.json();
-    const text=data.choices?.[0]?.message?.content||'';
-    if(!text)throw new Error('Réponse vide');
-    parseAndDisplay(text);
-  }catch(err){
-    document.getElementById('results-panel').style.display='block';
-    document.getElementById('results-body').innerHTML=`<div class="status-box status-warn" style="display:block">❌ ${err.message}</div>`;
+    if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||'Erreur '+res.status); }
+    const data = await res.json();
+    parseResult(data.choices?.[0]?.message?.content || '');
+  } catch(e) {
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('results-content').innerHTML =
+      `<div class="status err" style="display:block">❌ ${e.message}</div>`;
   }
-  btn.disabled=false; loader.classList.remove('visible');
+  btn.disabled = false; ldr.classList.remove('on');
 }
 
-function parseAndDisplay(text){
-  document.getElementById('results-panel').style.display='block';
-  const tcM=text.match(/D[ée]but\s*:\s*([^\n]+)\s*Fin\s*:\s*([^\n]+)/i);
-  const tiM=text.match(/Titre\s*:\s*([^\n]+)/i);
-  const voM=text.match(/Contexte.*?:\s*([\s\S]+?)(?:\n\n|$)/i);
-  const tc=tcM?`Début : ${tcM[1].trim()}  →  Fin : ${tcM[2].trim()}`:null;
-  const ti=tiM?tiM[1].trim():null;
-  const vo=voM?voM[1].trim():null;
+function parseResult(text) {
+  const tcM = text.match(/D[ée]but\s*:\s*([^\n]+)\s*Fin\s*:\s*([^\n]+)/i);
+  const tiM = text.match(/Titre\s*:\s*([^\n]+)/i);
+  const voM = text.match(/Contexte.*?:\s*([\s\S]+?)(?:\n\n|$)/i);
+  const tc = tcM ? `Début : ${tcM[1].trim()}  →  Fin : ${tcM[2].trim()}` : null;
+  const ti = tiM ? tiM[1].trim() : null;
+  const vo = voM ? voM[1].trim() : null;
+  lastTimecode = tc||''; lastVoix = vo||'';
 
-  // Mémoriser pour la sauvegarde
-  lastTimecode=tc||''; lastVoix=vo||'';
+  let html = '';
+  if (tc) html += `<div class="result-card"><div class="r-label">⏱ Timecode</div><div class="r-value mono">${tc}</div><button class="copy-btn" onclick="cp(this,'${tc.replace(/'/g,"\\'")}')">copier</button></div>`;
+  if (ti) html += `<div class="result-card highlight"><div class="r-label">🎬 Nouveau titre</div><div class="r-value bold">${ti}</div><button class="copy-btn" onclick="cp(this,this.dataset.v)" data-v="${ti.replace(/"/g,'&quot;')}">copier</button></div>`;
+  if (vo) html += `<div class="result-card"><div class="r-label">🎙 Voix off</div><div class="r-value">${vo}</div><button class="copy-btn" onclick="cp(this,this.dataset.v)" data-v="${vo.replace(/"/g,'&quot;')}">copier</button></div>`;
+  if (!tc&&!ti&&!vo) html = `<div class="result-card"><div class="r-value" style="white-space:pre-wrap;font-size:12px">${text}</div></div>`;
 
-  let html='';
-  if(tc) html+=`<div class="result-block"><div class="result-label">⏱ Timecode</div><div class="timecode">${tc}</div><button class="copy-btn" onclick="copyText(this,'${tc.replace(/'/g,"\\'")}')">copier</button></div>`;
-  if(ti) html+=`<div class="result-block" style="margin-top:10px"><div class="result-label">🎬 Nouveau titre</div><div class="result-text" style="font-weight:600">${ti}</div><button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${ti.replace(/"/g,'&quot;')}">copier</button></div>`;
-  if(vo) html+=`<div class="result-block" style="margin-top:10px"><div class="result-label">🎙 Voix off</div><div class="result-text">${vo}</div><button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${vo.replace(/"/g,'&quot;')}">copier</button></div>`;
-  if(!tc&&!ti&&!vo) html=`<div class="result-block"><div class="result-text" style="white-space:pre-wrap">${text}</div></div>`;
-  document.getElementById('results-body').innerHTML=html;
+  document.getElementById('results-content').innerHTML = html;
+  document.getElementById('results-section').style.display = 'block';
 
-  if(ti){
-    document.getElementById('save-newtitle').value=ti;
-    const a=ti.match(/\|\s*(.+?)\s*Humour/i);
-    if(a) document.getElementById('save-artist').value=a[1].trim();
+  if (ti) {
+    document.getElementById('s-newtitle').value = ti;
+    const am = ti.match(/\|\s*(.+?)\s*Humour/i);
+    if (am) document.getElementById('s-artist').value = am[1].trim();
   }
-  document.getElementById('save-chain').value=CHAIN_NAMES[currentChain];
-  document.getElementById('save-panel').style.display='block';
+  document.getElementById('s-chain').value = CHAINS[currentChain];
+  document.getElementById('save-section').style.display = 'block';
 }
 
-function copyText(btn,text){
-  navigator.clipboard.writeText(text).then(()=>{
-    btn.textContent='✓ copié'; btn.style.background='var(--accent)'; btn.style.color='#0e0e0e';
-    setTimeout(()=>{btn.textContent='copier';btn.style.background='';btn.style.color='';},1500);
+function cp(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent='✓'; btn.style.background='var(--c1)'; btn.style.color='#000';
+    setTimeout(()=>{ btn.textContent='copier'; btn.style.background=''; btn.style.color=''; }, 1500);
   });
 }
 
-// ── SAUVEGARDE ────────────────────────────────────────────────────────────
-async function saveVideo(){
-  const artist=document.getElementById('save-artist').value.trim();
-  const original=document.getElementById('save-original').value.trim();
-  const newtitle=document.getElementById('save-newtitle').value.trim();
-  const s=document.getElementById('save-status');
-  if(!artist||!original){s.className='status-box status-warn';s.textContent="Remplis au moins l'artiste et le titre original.";return;}
-  const btn=document.getElementById('save-btn');
-  btn.disabled=true; btn.textContent='⏳ Sauvegarde en cours...';
-  try{
+// ── SAVE ───────────────────────────────────────────────────────────────────
+async function saveVideo() {
+  const artist   = document.getElementById('s-artist').value.trim();
+  const original = document.getElementById('s-original').value.trim();
+  const newtitle = document.getElementById('s-newtitle').value.trim();
+  const st = document.getElementById('save-status');
+  if (!artist || !original) {
+    st.className='status err'; st.textContent='Remplis artiste et titre original.'; return;
+  }
+  const btn = document.getElementById('btn-save');
+  btn.disabled=true; btn.textContent='⏳ Sauvegarde…';
+  try {
     await sheetsAdd({
-      chain:CHAIN_NAMES[currentChain], artist, original, newtitle,
-      voix:lastVoix, timecode:lastTimecode,
-      date:new Date().toLocaleDateString('fr-FR')
+      chain: CHAINS[currentChain], artist, original, newtitle,
+      voix: lastVoix, timecode: lastTimecode,
+      date: new Date().toLocaleDateString('fr-FR')
     });
     await loadVideos();
-    s.className='status-box status-ok';
-    s.textContent=`✓ Ajouté dans Google Sheets — ${CHAIN_NAMES[currentChain]}`;
-    document.getElementById('save-artist').value='';
-    document.getElementById('save-original').value='';
-    document.getElementById('save-newtitle').value='';
-    document.getElementById('transcription').value='';
-    document.getElementById('results-panel').style.display='none';
+    st.className='status ok'; st.textContent=`✓ Ajouté — ${CHAINS[currentChain]}`;
+    ['s-artist','s-original','s-newtitle','transcription'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('results-section').style.display='none';
     lastTimecode=''; lastVoix='';
-    checkVideo(document.getElementById('search-input').value);
-    setTimeout(()=>{s.className='status-box';document.getElementById('save-panel').style.display='none';},3000);
-  }catch(e){
-    s.className='status-box status-warn'; s.textContent='❌ Erreur lors de la sauvegarde. Réessaie.';
+    checkDuplicate(document.getElementById('check-input').value);
+    setTimeout(()=>{ st.className='status'; document.getElementById('save-section').style.display='none'; },3000);
+  } catch(e) {
+    st.className='status err'; st.textContent='❌ Erreur sauvegarde. Réessaie.';
   }
-  btn.disabled=false; btn.textContent='✅ Ajouter au suivi';
+  btn.disabled=false; btn.textContent='✓ Ajouter au suivi';
 }
 
-// ── DÉTAIL AU CLIC ────────────────────────────────────────────────────────
-function showDetail(id){
-  const v=videos.find(x=>String(x.id)===String(id));
-  if(!v) return;
-  document.getElementById('detail-title').textContent=`${v.artist} — ${v.chain}`;
-  const cc={'Instant Vanne':'c1','La Dose du Rire':'c2','Rire Express':'c3'};
-  document.getElementById('detail-body').innerHTML=`
-    <div class="detail-field">
-      <div class="detail-field-label">🎭 Artiste</div>
-      <div class="detail-field-value">${v.artist||'—'}</div>
-    </div>
-    <div class="detail-field">
-      <div class="detail-field-label">📺 Chaîne</div>
-      <div class="detail-field-value"><span class="chain-badge ${cc[v.chain]||'c1'}">${v.chain}</span></div>
-    </div>
-    <div class="detail-field full">
-      <div class="detail-field-label">🎬 Titre original</div>
-      <div class="detail-field-value">${v.original||'—'}</div>
-    </div>
-    <div class="detail-field full" style="position:relative">
-      <div class="detail-field-label">✨ Nouveau titre</div>
-      <div class="detail-field-value title">${v.newtitle||'—'}</div>
-      ${v.newtitle?`<button class="copy-btn" onclick="copyText(this,'${v.newtitle.replace(/'/g,"\\'")}')">copier</button>`:''}
-    </div>
-    ${v.timecode?`<div class="detail-field full">
-      <div class="detail-field-label">⏱ Timecode</div>
-      <div class="detail-field-value mono">${v.timecode}</div>
-    </div>`:''}
-    ${v.voix?`<div class="detail-field full" style="position:relative">
-      <div class="detail-field-label">🎙 Voix off</div>
-      <div class="detail-field-value">${v.voix}</div>
-      <button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${v.voix.replace(/"/g,'&quot;')}">copier</button>
-    </div>`:''}
-    <div class="detail-field">
-      <div class="detail-field-label">📅 Date</div>
-      <div class="detail-field-value">${v.date||'—'}</div>
-    </div>`;
-
-  const drawer=document.getElementById('detail-drawer');
-  drawer.classList.add('open');
-  drawer.scrollIntoView({behavior:'smooth',block:'start'});
+// ── TABLE RENDER ───────────────────────────────────────────────────────────
+let activeFilter = 'all';
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  renderTable(document.getElementById('search').value);
 }
 
-function closeDetail(){
-  document.getElementById('detail-drawer').classList.remove('open');
-}
+function renderTable(q='') {
+  const term = q.toLowerCase();
+  const wrap = document.getElementById('table-scroll');
 
-// ── HISTORIQUE ────────────────────────────────────────────────────────────
-function renderHistory(filterTerm,chainFilter){
-  const term=(filterTerm??document.getElementById('history-search').value).toLowerCase();
-  const chain=chainFilter??currentFilter;
-  const cc={'Instant Vanne':'c1','La Dose du Rire':'c2','Rire Express':'c3'};
-  let filtered=videos.filter(v=>{
-    const mc=chain==='all'||v.chain===chain;
-    const mt=!term||(v.artist||'').toLowerCase().includes(term)||(v.original||'').toLowerCase().includes(term)||(v.newtitle||'').toLowerCase().includes(term);
-    return mc&&mt;
+  // Filter
+  let filtered = videos.filter(v => {
+    const mc = activeFilter==='all' || v.chain===activeFilter;
+    const mt = !term ||
+      (v.artist||'').toLowerCase().includes(term) ||
+      (v.original||'').toLowerCase().includes(term) ||
+      (v.newtitle||'').toLowerCase().includes(term);
+    return mc && mt;
   });
-  document.getElementById('total-count').textContent=`${videos.length} vidéo${videos.length>1?'s':''}`;
-  const c=document.getElementById('history-container');
-  if(filtered.length===0){
-    c.innerHTML=`<div class="empty-state">${videos.length===0?'Aucune vidéo enregistrée.<br>Génère et sauvegarde ta première vidéo.':'Aucun résultat.'}</div>`;
+
+  if (!filtered.length) {
+    wrap.innerHTML = `<div class="empty"><div class="empty-icon">—</div><div class="empty-text">${videos.length===0?'Aucune vidéo. Lance une synchronisation.':'Aucun résultat.'}</div></div>`;
     return;
   }
-  c.innerHTML=`<table class="history-table"><thead><tr>
-    <th>Chaîne</th><th>Artiste</th><th>Titre original</th><th>Nouveau titre</th><th>Date</th><th></th>
-  </tr></thead><tbody>${filtered.map(v=>`<tr class="data-row" onclick="showDetail('${v.id}')">
-    <td><span class="chain-badge ${cc[v.chain]||'c1'}">${v.chain}</span></td>
-    <td style="color:var(--muted);font-size:12px">${v.artist||''}</td>
-    <td>${v.original||''}</td>
-    <td style="color:var(--accent2)">${v.newtitle||'—'}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${v.date||''}</td>
-    <td><button class="del-btn" onclick="event.stopPropagation();deleteVideo('${v.id}')">✕</button></td>
-  </tr>`).join('')}</tbody></table>`;
+
+  // Trier : d'abord par chaîne dans l'ordre Instant Vanne > Dose du Rire > Rire Express, puis par date
+  filtered.sort((a,b) => {
+    const oi = CHAIN_ORDER.indexOf(a.chain) - CHAIN_ORDER.indexOf(b.chain);
+    if (oi !== 0) return oi;
+    return String(b.id).localeCompare(String(a.id));
+  });
+
+  // Grouper par chaîne et insérer des séparateurs
+  let rows = '';
+  let lastChain = null;
+  filtered.forEach(v => {
+    if (v.chain !== lastChain) {
+      rows += `<tr class="section-divider"><td colspan="6"><span class="section-divider-label ${SD_CLASS[v.chain]||'sd1'}">▸ ${v.chain}</span></td></tr>`;
+      lastChain = v.chain;
+    }
+    rows += `<tr onclick="showDetail('${v.id}')">
+      <td><span class="chain-tag ${TAG_CLASS[v.chain]||'tag1'}">${v.chain==='Instant Vanne'?'IV':v.chain==='La Dose du Rire'?'DR':'RE'}</span></td>
+      <td class="artist-cell">${v.artist||'—'}</td>
+      <td class="title-cell">${(v.original||'').slice(0,60)}${(v.original||'').length>60?'…':''}</td>
+      <td class="new-title-cell">${(v.newtitle||'—').slice(0,45)}${(v.newtitle||'').length>45?'…':''}</td>
+      <td class="date-cell">${v.date||'—'}</td>
+      <td><button class="del-btn" onclick="event.stopPropagation();delVideo('${v.id}')">✕</button></td>
+    </tr>`;
+  });
+
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>Chaîne</th><th>Artiste</th><th>Titre original</th><th>Nouveau titre</th><th>Date</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
-function filterHistory(term){renderHistory(term,currentFilter);}
-function filterByChain(chain,btn){
-  currentFilter=chain;
-  document.querySelectorAll('.pill[data-filter]').forEach(p=>p.classList.toggle('active',p.dataset.filter===chain));
-  renderHistory(document.getElementById('history-search').value,chain);
+// ── DETAIL ─────────────────────────────────────────────────────────────────
+function showDetail(id) {
+  const v = videos.find(x=>String(x.id)===String(id));
+  if (!v) return;
+  document.getElementById('detail-name').textContent = (v.artist||'?').toUpperCase();
+  document.getElementById('detail-content').innerHTML = `
+    <div class="d-grid">
+      <div class="d-field"><div class="d-label">Artiste</div><div class="d-value">${v.artist||'—'}</div></div>
+      <div class="d-field"><div class="d-label">Chaîne</div><div class="d-value"><span class="chain-tag ${TAG_CLASS[v.chain]||'tag1'}">${v.chain}</span></div></div>
+    </div>
+    <div class="d-field"><div class="d-label">Titre original</div><div class="d-value">${v.original||'—'}</div></div>
+    ${v.newtitle?`<div class="d-field accent" style="position:relative">
+      <div class="d-label">✨ Nouveau titre</div>
+      <div class="d-value title">${v.newtitle}</div>
+      <button class="copy-btn" onclick="cp(this,this.dataset.v)" data-v="${(v.newtitle||'').replace(/"/g,'&quot;')}">copier</button>
+    </div>`:''}
+    ${v.timecode?`<div class="d-field"><div class="d-label">⏱ Timecode</div><div class="d-value mono">${v.timecode}</div></div>`:''}
+    ${v.voix?`<div class="d-field" style="position:relative">
+      <div class="d-label">🎙 Voix off</div>
+      <div class="d-value" style="font-size:13px;line-height:1.7">${v.voix}</div>
+      <button class="copy-btn" onclick="cp(this,this.dataset.v)" data-v="${(v.voix||'').replace(/"/g,'&quot;')}">copier</button>
+    </div>`:''}
+    <div class="d-field"><div class="d-label">📅 Date</div><div class="d-value">${v.date||'—'}</div></div>`;
+  document.getElementById('detail-overlay').classList.add('open');
 }
-async function deleteVideo(id){
-  if(!confirm('Supprimer cette vidéo ?'))return;
-  closeDetail();
-  try{await sheetsDelete(id);await loadVideos();}
-  catch(e){alert('Erreur lors de la suppression.');}
+function closeDetail(e) {
+  if (e.target===document.getElementById('detail-overlay'))
+    document.getElementById('detail-overlay').classList.remove('open');
+}
+function closeDetailBtn() {
+  document.getElementById('detail-overlay').classList.remove('open');
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
-selectChain(1);
-if(!getApiKey()){document.getElementById('api-modal').style.display='flex';}
-else{document.getElementById('api-modal').style.display='none';updateKeyIndicator();}
+// ── DELETE ─────────────────────────────────────────────────────────────────
+async function delVideo(id) {
+  if (!confirm('Supprimer cette vidéo du suivi ?')) return;
+  document.getElementById('detail-overlay').classList.remove('open');
+  try { await sheetsDelete(id); await loadVideos(); }
+  catch(e) { toast('Erreur suppression'); }
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display='block';
+  setTimeout(()=>{ t.style.display='none'; }, 2500);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+selectChain(1, document.querySelector('.ctab'));
+updateKeyUI();
+if (!getKey()) document.getElementById('modal-api').classList.add('open');
 loadVideos();
 </script>
 </body>
