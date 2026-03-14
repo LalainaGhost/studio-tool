@@ -39,12 +39,14 @@
   .copy-btn:hover{background:var(--accent);color:#0e0e0e;}
   .timecode{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--accent2);letter-spacing:0.05em;}
   .save-row{display:grid;grid-template-columns:1fr 2fr 2fr 1fr;gap:12px;align-items:end;}
+  /* Historique */
   .history-panel{grid-column:1/-1;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
   .history-table{width:100%;border-collapse:collapse;font-size:13px;}
   .history-table th{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);}
   .history-table td{padding:10px 16px;border-bottom:1px solid rgba(42,42,42,0.5);vertical-align:middle;}
+  .history-table tr.data-row{cursor:pointer;}
+  .history-table tr.data-row:hover td{background:rgba(200,240,96,0.04);}
   .history-table tr:last-child td{border-bottom:none;}
-  .history-table tr:hover td{background:rgba(255,255,255,0.02);}
   .chain-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:6px;font-weight:500;}
   .c1{background:rgba(200,240,96,0.12);color:var(--accent);}
   .c2{background:rgba(96,212,240,0.12);color:var(--accent2);}
@@ -59,6 +61,21 @@
   @keyframes spin{to{transform:rotate(360deg);}}
   .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:all 0.1s;}
   .del-btn:hover{color:var(--danger);background:rgba(240,96,96,0.1);}
+  /* Detail drawer */
+  .detail-drawer{grid-column:1/-1;background:var(--surface);border:1px solid var(--accent);border-radius:16px;overflow:hidden;display:none;}
+  .detail-drawer.open{display:block;}
+  .detail-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+  .detail-title{font-size:14px;font-weight:600;color:var(--accent);}
+  .close-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;}
+  .close-btn:hover{color:var(--text);}
+  .detail-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .detail-field{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;}
+  .detail-field.full{grid-column:1/-1;}
+  .detail-field-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
+  .detail-field-value{font-size:14px;line-height:1.7;color:var(--text);}
+  .detail-field-value.mono{font-family:'DM Mono',monospace;color:var(--accent2);}
+  .detail-field-value.title{font-weight:600;color:var(--accent);}
+  /* API Modal */
   .api-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:1000;}
   .api-modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:460px;width:90%;}
   .api-modal h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;}
@@ -73,7 +90,7 @@
   .key-indicator:hover{border-color:var(--accent);color:var(--accent);}
   .key-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
   .key-dot.off{background:var(--danger);}
-  @media(max-width:700px){.layout{grid-template-columns:1fr;}.save-row{grid-template-columns:1fr 1fr;}}
+  @media(max-width:700px){.layout{grid-template-columns:1fr;}.save-row{grid-template-columns:1fr 1fr;}.detail-body{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -101,10 +118,7 @@
       <input type="password" id="api-key-input" placeholder="gsk_..." autocomplete="off">
       <button onclick="saveApiKey()">Enregistrer</button>
     </div>
-    <div class="api-key-note">
-      🔒 Stockée uniquement dans ton navigateur.<br>
-      💚 Gratuit — pas de CB, pas de restriction géographique.
-    </div>
+    <div class="api-key-note">🔒 Stockée uniquement dans ton navigateur.<br>💚 Gratuit — sans CB, sans restriction géographique.</div>
   </div>
 </div>
 
@@ -123,7 +137,7 @@
     <div class="panel-header"><div class="step-num">2</div><div class="panel-title">Coller la transcription</div></div>
     <div class="panel-body">
       <label>Transcription YouTube</label>
-      <textarea id="transcription" placeholder="Colle ici la transcription copiée depuis YouTube (bouton Afficher la transcription)..."></textarea>
+      <textarea id="transcription" placeholder="Colle ici la transcription copiée depuis YouTube..."></textarea>
       <button class="btn btn-primary" id="gen-btn" onclick="generateContent()">⚡ Générer titre + voix off</button>
       <div class="loader" id="loader"><div class="spinner"></div><span>Analyse en cours...</span></div>
     </div>
@@ -148,6 +162,16 @@
     </div>
   </div>
 
+  <!-- DETAIL DRAWER -->
+  <div class="detail-drawer" id="detail-drawer">
+    <div class="detail-header">
+      <div class="detail-title" id="detail-title">Détails de la vidéo</div>
+      <button class="close-btn" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-body" id="detail-body"></div>
+  </div>
+
+  <!-- HISTORIQUE -->
   <div class="history-panel">
     <div class="panel-header">
       <div class="panel-title">📋 Suivi des vidéos — Google Sheets</div>
@@ -194,155 +218,159 @@ La Société & Les Réseaux | Elodie Poux Humour
 
 Voici la transcription :`;
 
-let currentChain = 1, currentFilter = 'all', videos = [];
+let currentChain=1, currentFilter='all', videos=[];
+let lastTimecode='', lastVoix='';
 
 // ── SHEETS ────────────────────────────────────────────────────────────────
 async function sheetsGet() {
-  const res = await fetch(SCRIPT_URL + '?action=getAll');
+  const res = await fetch(SCRIPT_URL+'?action=getAll');
   const data = await res.json();
   return Array.isArray(data) ? data : [];
 }
 async function sheetsAdd(entry) {
-  await fetch(SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'add',...entry})});
+  await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'add',...entry})});
 }
 async function sheetsDelete(id) {
-  await fetch(SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'delete',id})});
+  await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'delete',id})});
 }
 async function loadVideos() {
-  document.getElementById('history-container').innerHTML =
-    '<div class="empty-state">⏳ Chargement depuis Google Sheets...</div>';
+  document.getElementById('history-container').innerHTML='<div class="empty-state">⏳ Chargement depuis Google Sheets...</div>';
   try {
     videos = await sheetsGet();
     renderHistory();
   } catch(e) {
-    document.getElementById('history-container').innerHTML =
-      '<div class="empty-state" style="color:var(--danger)">❌ Impossible de charger. Vérifie le Apps Script.</div>';
+    document.getElementById('history-container').innerHTML='<div class="empty-state" style="color:var(--danger)">❌ Impossible de charger. Vérifie le Apps Script.</div>';
   }
 }
 
 // ── CLÉ API ───────────────────────────────────────────────────────────────
-function getApiKey() { return localStorage.getItem('studio_api_key') || ''; }
-function saveApiKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key.startsWith('gsk_')) { alert('La clé Groq doit commencer par gsk_...'); return; }
-  localStorage.setItem('studio_api_key', key);
-  document.getElementById('api-modal').style.display = 'none';
+function getApiKey(){return localStorage.getItem('studio_api_key')||'';}
+function saveApiKey(){
+  const key=document.getElementById('api-key-input').value.trim();
+  if(!key.startsWith('gsk_')){alert('La clé Groq doit commencer par gsk_...');return;}
+  localStorage.setItem('studio_api_key',key);
+  document.getElementById('api-modal').style.display='none';
   updateKeyIndicator();
 }
-function updateKeyIndicator() {
-  const key = getApiKey();
-  document.getElementById('key-dot').classList.toggle('off', !key);
-  document.getElementById('key-label').textContent = key ? 'gsk_••••' : 'Clé API';
+function updateKeyIndicator(){
+  const key=getApiKey();
+  document.getElementById('key-dot').classList.toggle('off',!key);
+  document.getElementById('key-label').textContent=key?'gsk_••••':'Clé API';
 }
-function showApiModal() {
-  document.getElementById('api-key-input').value = getApiKey();
-  document.getElementById('api-modal').style.display = 'flex';
+function showApiModal(){
+  document.getElementById('api-key-input').value=getApiKey();
+  document.getElementById('api-modal').style.display='flex';
 }
-document.getElementById('api-modal').addEventListener('click', function(e) {
-  if (e.target === this && getApiKey()) this.style.display = 'none';
+document.getElementById('api-modal').addEventListener('click',function(e){
+  if(e.target===this&&getApiKey())this.style.display='none';
 });
 
 // ── CHAÎNE ────────────────────────────────────────────────────────────────
-function selectChain(n) {
-  currentChain = n;
-  document.querySelectorAll('.pill[data-chain]').forEach(p =>
-    p.classList.toggle('active', parseInt(p.dataset.chain) === n));
-  document.getElementById('save-chain').value = CHAIN_NAMES[n];
+function selectChain(n){
+  currentChain=n;
+  document.querySelectorAll('.pill[data-chain]').forEach(p=>p.classList.toggle('active',parseInt(p.dataset.chain)===n));
+  document.getElementById('save-chain').value=CHAIN_NAMES[n];
 }
 
 // ── VÉRIFICATION ──────────────────────────────────────────────────────────
-function checkVideo(q) {
-  const box = document.getElementById('check-status');
-  if (!q.trim()) { box.className = 'status-box'; return; }
-  const term = q.toLowerCase();
-  const matches = videos.filter(v =>
-    (v.artist||'').toLowerCase().includes(term) ||
-    (v.original||'').toLowerCase().includes(term) ||
+function checkVideo(q){
+  const box=document.getElementById('check-status');
+  if(!q.trim()){box.className='status-box';return;}
+  const term=q.toLowerCase();
+  const matches=videos.filter(v=>
+    (v.artist||'').toLowerCase().includes(term)||
+    (v.original||'').toLowerCase().includes(term)||
     (v.newtitle||'').toLowerCase().includes(term));
-  if (matches.length > 0) {
-    box.className = 'status-box status-warn';
-    box.innerHTML = `⚠️ <strong>${matches.length} vidéo(s) déjà faite(s)</strong> :<br>` +
+  if(matches.length>0){
+    box.className='status-box status-warn';
+    box.innerHTML=`⚠️ <strong>${matches.length} vidéo(s) déjà faite(s)</strong> :<br>`+
       matches.map(m=>`→ <em>${m.artist}</em> — "${m.original}" sur <strong>${m.chain}</strong> (${m.date})`).join('<br>');
-  } else if (q.length > 2) {
-    box.className = 'status-box status-ok';
-    box.innerHTML = '✓ Pas de doublon — vidéo disponible !';
-  } else { box.className = 'status-box'; }
+  } else if(q.length>2){
+    box.className='status-box status-ok';
+    box.innerHTML='✓ Pas de doublon — vidéo disponible !';
+  } else {box.className='status-box';}
 }
 
 // ── GÉNÉRATION ────────────────────────────────────────────────────────────
-async function generateContent() {
-  const transcription = document.getElementById('transcription').value.trim();
-  if (!transcription) { alert('Colle d\'abord la transcription !'); return; }
-  const apiKey = getApiKey();
-  if (!apiKey) { showApiModal(); return; }
-  const btn = document.getElementById('gen-btn');
-  const loader = document.getElementById('loader');
-  btn.disabled = true; loader.classList.add('visible');
-  document.getElementById('results-panel').style.display = 'none';
-  document.getElementById('save-panel').style.display = 'none';
-  try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
-      body: JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1000,
+async function generateContent(){
+  const transcription=document.getElementById('transcription').value.trim();
+  if(!transcription){alert('Colle d\'abord la transcription !');return;}
+  const apiKey=getApiKey();
+  if(!apiKey){showApiModal();return;}
+  const btn=document.getElementById('gen-btn');
+  const loader=document.getElementById('loader');
+  btn.disabled=true; loader.classList.add('visible');
+  document.getElementById('results-panel').style.display='none';
+  document.getElementById('save-panel').style.display='none';
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1000,
         messages:[{role:'user',content:PROMPT+'\n\n'+transcription}]})
     });
-    if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||`Erreur ${res.status}`); }
-    const data = await res.json();
-    const text = data.choices?.[0]?.message?.content || '';
-    if (!text) throw new Error('Réponse vide');
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`Erreur ${res.status}`);}
+    const data=await res.json();
+    const text=data.choices?.[0]?.message?.content||'';
+    if(!text)throw new Error('Réponse vide');
     parseAndDisplay(text);
-  } catch(err) {
-    document.getElementById('results-panel').style.display = 'block';
-    document.getElementById('results-body').innerHTML =
-      `<div class="status-box status-warn" style="display:block">❌ ${err.message}</div>`;
+  }catch(err){
+    document.getElementById('results-panel').style.display='block';
+    document.getElementById('results-body').innerHTML=`<div class="status-box status-warn" style="display:block">❌ ${err.message}</div>`;
   }
-  btn.disabled = false; loader.classList.remove('visible');
+  btn.disabled=false; loader.classList.remove('visible');
 }
 
-function parseAndDisplay(text) {
-  document.getElementById('results-panel').style.display = 'block';
-  const tcM = text.match(/D[ée]but\s*:\s*([^\n]+)\s*Fin\s*:\s*([^\n]+)/i);
-  const tiM = text.match(/Titre\s*:\s*([^\n]+)/i);
-  const voM = text.match(/Contexte.*?:\s*([\s\S]+?)(?:\n\n|$)/i);
-  const tc = tcM ? `Début : ${tcM[1].trim()}  →  Fin : ${tcM[2].trim()}` : null;
-  const ti = tiM ? tiM[1].trim() : null;
-  const vo = voM ? voM[1].trim() : null;
-  let html = '';
-  if (tc) html += `<div class="result-block"><div class="result-label">⏱ Timecode</div><div class="timecode">${tc}</div><button class="copy-btn" onclick="copyText(this,'${tc.replace(/'/g,"\\'")}')">copier</button></div>`;
-  if (ti) html += `<div class="result-block" style="margin-top:10px"><div class="result-label">🎬 Nouveau titre</div><div class="result-text" style="font-weight:600">${ti}</div><button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${ti.replace(/"/g,'&quot;')}">copier</button></div>`;
-  if (vo) html += `<div class="result-block" style="margin-top:10px"><div class="result-label">🎙 Voix off</div><div class="result-text">${vo}</div><button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${vo.replace(/"/g,'&quot;')}">copier</button></div>`;
-  if (!tc&&!ti&&!vo) html = `<div class="result-block"><div class="result-text" style="white-space:pre-wrap">${text}</div></div>`;
-  document.getElementById('results-body').innerHTML = html;
-  if (ti) {
-    document.getElementById('save-newtitle').value = ti;
-    const a = ti.match(/\|\s*(.+?)\s*Humour/i);
-    if (a) document.getElementById('save-artist').value = a[1].trim();
+function parseAndDisplay(text){
+  document.getElementById('results-panel').style.display='block';
+  const tcM=text.match(/D[ée]but\s*:\s*([^\n]+)\s*Fin\s*:\s*([^\n]+)/i);
+  const tiM=text.match(/Titre\s*:\s*([^\n]+)/i);
+  const voM=text.match(/Contexte.*?:\s*([\s\S]+?)(?:\n\n|$)/i);
+  const tc=tcM?`Début : ${tcM[1].trim()}  →  Fin : ${tcM[2].trim()}`:null;
+  const ti=tiM?tiM[1].trim():null;
+  const vo=voM?voM[1].trim():null;
+
+  // Mémoriser pour la sauvegarde
+  lastTimecode=tc||''; lastVoix=vo||'';
+
+  let html='';
+  if(tc) html+=`<div class="result-block"><div class="result-label">⏱ Timecode</div><div class="timecode">${tc}</div><button class="copy-btn" onclick="copyText(this,'${tc.replace(/'/g,"\\'")}')">copier</button></div>`;
+  if(ti) html+=`<div class="result-block" style="margin-top:10px"><div class="result-label">🎬 Nouveau titre</div><div class="result-text" style="font-weight:600">${ti}</div><button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${ti.replace(/"/g,'&quot;')}">copier</button></div>`;
+  if(vo) html+=`<div class="result-block" style="margin-top:10px"><div class="result-label">🎙 Voix off</div><div class="result-text">${vo}</div><button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${vo.replace(/"/g,'&quot;')}">copier</button></div>`;
+  if(!tc&&!ti&&!vo) html=`<div class="result-block"><div class="result-text" style="white-space:pre-wrap">${text}</div></div>`;
+  document.getElementById('results-body').innerHTML=html;
+
+  if(ti){
+    document.getElementById('save-newtitle').value=ti;
+    const a=ti.match(/\|\s*(.+?)\s*Humour/i);
+    if(a) document.getElementById('save-artist').value=a[1].trim();
   }
-  document.getElementById('save-chain').value = CHAIN_NAMES[currentChain];
-  document.getElementById('save-panel').style.display = 'block';
+  document.getElementById('save-chain').value=CHAIN_NAMES[currentChain];
+  document.getElementById('save-panel').style.display='block';
 }
 
-function copyText(btn, text) {
-  navigator.clipboard.writeText(text).then(() => {
-    btn.textContent = '✓ copié'; btn.style.background='var(--accent)'; btn.style.color='#0e0e0e';
+function copyText(btn,text){
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✓ copié'; btn.style.background='var(--accent)'; btn.style.color='#0e0e0e';
     setTimeout(()=>{btn.textContent='copier';btn.style.background='';btn.style.color='';},1500);
   });
 }
 
 // ── SAUVEGARDE ────────────────────────────────────────────────────────────
-async function saveVideo() {
-  const artist   = document.getElementById('save-artist').value.trim();
-  const original = document.getElementById('save-original').value.trim();
-  const newtitle = document.getElementById('save-newtitle').value.trim();
-  const s = document.getElementById('save-status');
-  if (!artist || !original) {
-    s.className='status-box status-warn'; s.textContent="Remplis au moins l'artiste et le titre original."; return;
-  }
-  const btn = document.getElementById('save-btn');
+async function saveVideo(){
+  const artist=document.getElementById('save-artist').value.trim();
+  const original=document.getElementById('save-original').value.trim();
+  const newtitle=document.getElementById('save-newtitle').value.trim();
+  const s=document.getElementById('save-status');
+  if(!artist||!original){s.className='status-box status-warn';s.textContent="Remplis au moins l'artiste et le titre original.";return;}
+  const btn=document.getElementById('save-btn');
   btn.disabled=true; btn.textContent='⏳ Sauvegarde en cours...';
-  try {
-    await sheetsAdd({chain:CHAIN_NAMES[currentChain],artist,original,newtitle,date:new Date().toLocaleDateString('fr-FR')});
+  try{
+    await sheetsAdd({
+      chain:CHAIN_NAMES[currentChain], artist, original, newtitle,
+      voix:lastVoix, timecode:lastTimecode,
+      date:new Date().toLocaleDateString('fr-FR')
+    });
     await loadVideos();
     s.className='status-box status-ok';
     s.textContent=`✓ Ajouté dans Google Sheets — ${CHAIN_NAMES[currentChain]}`;
@@ -351,59 +379,107 @@ async function saveVideo() {
     document.getElementById('save-newtitle').value='';
     document.getElementById('transcription').value='';
     document.getElementById('results-panel').style.display='none';
+    lastTimecode=''; lastVoix='';
     checkVideo(document.getElementById('search-input').value);
     setTimeout(()=>{s.className='status-box';document.getElementById('save-panel').style.display='none';},3000);
-  } catch(e) {
+  }catch(e){
     s.className='status-box status-warn'; s.textContent='❌ Erreur lors de la sauvegarde. Réessaie.';
   }
   btn.disabled=false; btn.textContent='✅ Ajouter au suivi';
 }
 
+// ── DÉTAIL AU CLIC ────────────────────────────────────────────────────────
+function showDetail(id){
+  const v=videos.find(x=>String(x.id)===String(id));
+  if(!v) return;
+  document.getElementById('detail-title').textContent=`${v.artist} — ${v.chain}`;
+  const cc={'Instant Vanne':'c1','La Dose du Rire':'c2','Rire Express':'c3'};
+  document.getElementById('detail-body').innerHTML=`
+    <div class="detail-field">
+      <div class="detail-field-label">🎭 Artiste</div>
+      <div class="detail-field-value">${v.artist||'—'}</div>
+    </div>
+    <div class="detail-field">
+      <div class="detail-field-label">📺 Chaîne</div>
+      <div class="detail-field-value"><span class="chain-badge ${cc[v.chain]||'c1'}">${v.chain}</span></div>
+    </div>
+    <div class="detail-field full">
+      <div class="detail-field-label">🎬 Titre original</div>
+      <div class="detail-field-value">${v.original||'—'}</div>
+    </div>
+    <div class="detail-field full" style="position:relative">
+      <div class="detail-field-label">✨ Nouveau titre</div>
+      <div class="detail-field-value title">${v.newtitle||'—'}</div>
+      ${v.newtitle?`<button class="copy-btn" onclick="copyText(this,'${v.newtitle.replace(/'/g,"\\'")}')">copier</button>`:''}
+    </div>
+    ${v.timecode?`<div class="detail-field full">
+      <div class="detail-field-label">⏱ Timecode</div>
+      <div class="detail-field-value mono">${v.timecode}</div>
+    </div>`:''}
+    ${v.voix?`<div class="detail-field full" style="position:relative">
+      <div class="detail-field-label">🎙 Voix off</div>
+      <div class="detail-field-value">${v.voix}</div>
+      <button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${v.voix.replace(/"/g,'&quot;')}">copier</button>
+    </div>`:''}
+    <div class="detail-field">
+      <div class="detail-field-label">📅 Date</div>
+      <div class="detail-field-value">${v.date||'—'}</div>
+    </div>`;
+
+  const drawer=document.getElementById('detail-drawer');
+  drawer.classList.add('open');
+  drawer.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function closeDetail(){
+  document.getElementById('detail-drawer').classList.remove('open');
+}
+
 // ── HISTORIQUE ────────────────────────────────────────────────────────────
-function renderHistory(filterTerm, chainFilter) {
-  const term  = (filterTerm ?? document.getElementById('history-search').value).toLowerCase();
-  const chain = chainFilter ?? currentFilter;
-  const cc = {'Instant Vanne':'c1','La Dose du Rire':'c2','Rire Express':'c3'};
-  let filtered = videos.filter(v => {
-    const mc = chain==='all' || v.chain===chain;
-    const mt = !term || (v.artist||'').toLowerCase().includes(term) ||
-      (v.original||'').toLowerCase().includes(term) || (v.newtitle||'').toLowerCase().includes(term);
-    return mc && mt;
+function renderHistory(filterTerm,chainFilter){
+  const term=(filterTerm??document.getElementById('history-search').value).toLowerCase();
+  const chain=chainFilter??currentFilter;
+  const cc={'Instant Vanne':'c1','La Dose du Rire':'c2','Rire Express':'c3'};
+  let filtered=videos.filter(v=>{
+    const mc=chain==='all'||v.chain===chain;
+    const mt=!term||(v.artist||'').toLowerCase().includes(term)||(v.original||'').toLowerCase().includes(term)||(v.newtitle||'').toLowerCase().includes(term);
+    return mc&&mt;
   });
-  document.getElementById('total-count').textContent = `${videos.length} vidéo${videos.length>1?'s':''}`;
-  const c = document.getElementById('history-container');
-  if (filtered.length===0) {
+  document.getElementById('total-count').textContent=`${videos.length} vidéo${videos.length>1?'s':''}`;
+  const c=document.getElementById('history-container');
+  if(filtered.length===0){
     c.innerHTML=`<div class="empty-state">${videos.length===0?'Aucune vidéo enregistrée.<br>Génère et sauvegarde ta première vidéo.':'Aucun résultat.'}</div>`;
     return;
   }
   c.innerHTML=`<table class="history-table"><thead><tr>
     <th>Chaîne</th><th>Artiste</th><th>Titre original</th><th>Nouveau titre</th><th>Date</th><th></th>
-  </tr></thead><tbody>${filtered.map(v=>`<tr>
+  </tr></thead><tbody>${filtered.map(v=>`<tr class="data-row" onclick="showDetail('${v.id}')">
     <td><span class="chain-badge ${cc[v.chain]||'c1'}">${v.chain}</span></td>
     <td style="color:var(--muted);font-size:12px">${v.artist||''}</td>
     <td>${v.original||''}</td>
     <td style="color:var(--accent2)">${v.newtitle||'—'}</td>
     <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${v.date||''}</td>
-    <td><button class="del-btn" onclick="deleteVideo('${v.id}')">✕</button></td>
+    <td><button class="del-btn" onclick="event.stopPropagation();deleteVideo('${v.id}')">✕</button></td>
   </tr>`).join('')}</tbody></table>`;
 }
 
-function filterHistory(term) { renderHistory(term, currentFilter); }
-function filterByChain(chain, btn) {
-  currentFilter = chain;
+function filterHistory(term){renderHistory(term,currentFilter);}
+function filterByChain(chain,btn){
+  currentFilter=chain;
   document.querySelectorAll('.pill[data-filter]').forEach(p=>p.classList.toggle('active',p.dataset.filter===chain));
-  renderHistory(document.getElementById('history-search').value, chain);
+  renderHistory(document.getElementById('history-search').value,chain);
 }
-async function deleteVideo(id) {
-  if (!confirm('Supprimer cette vidéo ?')) return;
-  try { await sheetsDelete(id); await loadVideos(); }
-  catch(e) { alert('Erreur lors de la suppression.'); }
+async function deleteVideo(id){
+  if(!confirm('Supprimer cette vidéo ?'))return;
+  closeDetail();
+  try{await sheetsDelete(id);await loadVideos();}
+  catch(e){alert('Erreur lors de la suppression.');}
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 selectChain(1);
-if (!getApiKey()) { document.getElementById('api-modal').style.display='flex'; }
-else { document.getElementById('api-modal').style.display='none'; updateKeyIndicator(); }
+if(!getApiKey()){document.getElementById('api-modal').style.display='flex';}
+else{document.getElementById('api-modal').style.display='none';updateKeyIndicator();}
 loadVideos();
 </script>
 </body>
