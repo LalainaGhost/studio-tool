@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+  :root{--bg:#0e0e0e;--surface:#161616;--surface2:#1e1e1e;--border:#2a2a2a;--accent:#c8f060;--accent2:#60d4f0;--text:#f0f0f0;--muted:#888;--danger:#f06060;--warn:#f0a060;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding:32px 24px;}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:40px;flex-wrap:wrap;}
+  .logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;}
+  .logo span{color:var(--accent);}
+  .chain-pills{display:flex;gap:8px;margin-left:auto;}
+  .pill{font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s;background:transparent;}
+  .pill.active,.pill:hover{border-color:var(--accent);color:var(--accent);background:rgba(200,240,96,0.07);}
+  .layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1100px;margin:0 auto;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .panel-header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);}
+  .step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#0e0e0e;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .panel-title{font-size:13px;font-weight:600;letter-spacing:0.02em;}
+  .panel-body{padding:20px;}
+  label{display:block;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+  textarea,input[type=text]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 14px;resize:vertical;outline:none;transition:border-color 0.15s;}
+  textarea:focus,input[type=text]:focus{border-color:var(--accent);}
+  textarea{min-height:140px;line-height:1.6;}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;margin-top:14px;}
+  .btn-primary{background:var(--accent);color:#0e0e0e;}
+  .btn-primary:hover{background:#d4f570;transform:translateY(-1px);}
+  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .status-box{border-radius:10px;padding:12px 14px;font-size:13px;margin-top:14px;display:none;line-height:1.6;}
+  .status-ok{display:block;background:rgba(200,240,96,0.08);border:1px solid rgba(200,240,96,0.25);color:var(--accent);}
+  .status-warn{display:block;background:rgba(240,96,96,0.08);border:1px solid rgba(240,96,96,0.25);color:var(--danger);}
+  .result-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:12px;position:relative;}
+  .result-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
+  .result-text{font-size:14px;line-height:1.7;color:var(--text);}
+  .copy-btn{position:absolute;top:10px;right:10px;background:var(--border);border:none;border-radius:6px;padding:4px 10px;color:var(--muted);font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;transition:all 0.15s;}
+  .copy-btn:hover{background:var(--accent);color:#0e0e0e;}
+  .timecode{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--accent2);letter-spacing:0.05em;}
+  .save-row{display:grid;grid-template-columns:1fr 2fr 2fr 1fr;gap:12px;align-items:end;}
+  .history-panel{grid-column:1/-1;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .history-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .history-table th{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);}
+  .history-table td{padding:10px 16px;border-bottom:1px solid rgba(42,42,42,0.5);vertical-align:middle;}
+  .history-table tr:last-child td{border-bottom:none;}
+  .history-table tr:hover td{background:rgba(255,255,255,0.02);}
+  .chain-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:6px;font-weight:500;}
+  .c1{background:rgba(200,240,96,0.12);color:var(--accent);}
+  .c2{background:rgba(96,212,240,0.12);color:var(--accent2);}
+  .c3{background:rgba(240,160,96,0.12);color:var(--warn);}
+  .search-bar{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .search-bar input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 12px;outline:none;width:240px;}
+  .search-bar input:focus{border-color:var(--accent);}
+  .empty-state{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+  .loader{display:none;align-items:center;gap:8px;margin-top:14px;color:var(--muted);font-size:13px;}
+  .loader.visible{display:flex;}
+  .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:all 0.1s;}
+  .del-btn:hover{color:var(--danger);background:rgba(240,96,96,0.1);}
+  .api-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:1000;}
+  .api-modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:460px;width:90%;}
+  .api-modal h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;}
+  .api-modal h2 span{color:var(--accent);}
+  .api-modal p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px;}
+  .api-modal a{color:var(--accent2);}
+  .api-key-bar{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:4px 4px 4px 14px;margin-bottom:12px;}
+  .api-key-bar input{flex:1;background:none;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;}
+  .api-key-bar button{background:var(--accent);border:none;border-radius:7px;padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#0e0e0e;cursor:pointer;}
+  .api-key-note{font-size:11px;color:var(--muted);line-height:1.6;}
+  .key-indicator{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;transition:all 0.15s;margin-left:8px;}
+  .key-indicator:hover{border-color:var(--accent);color:var(--accent);}
+  .key-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+  .key-dot.off{background:var(--danger);}
+  @media(max-width:700px){.layout{grid-template-columns:1fr;}.save-row{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Studio<span>Tool</span></div>
+  <div class="chain-pills">
+    <button class="pill active" data-chain="1" onclick="selectChain(1)">Instant Vanne</button>
+    <button class="pill" data-chain="2" onclick="selectChain(2)">La Dose du Rire</button>
+    <button class="pill" data-chain="3" onclick="selectChain(3)">Rire Express</button>
+  </div>
+  <button class="key-indicator" onclick="showApiModal()" id="key-indicator">
+    <span class="key-dot off" id="key-dot"></span>
+    <span id="key-label">Clé API</span>
+  </button>
+</header>
+
+<div class="api-modal-overlay" id="api-modal">
+  <div class="api-modal">
+    <h2>Clé API <span>Groq</span></h2>
+    <p>Groq est 100% gratuit, sans CB, disponible partout dans le monde.<br>
+    Sauvegardée dans ton navigateur — à taper une seule fois.<br><br>
+    👉 <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> → créer un compte → <strong>Create API Key</strong> → copier la clé.</p>
+    <div class="api-key-bar">
+      <input type="password" id="api-key-input" placeholder="gsk_..." autocomplete="off">
+      <button onclick="saveApiKey()">Enregistrer</button>
+    </div>
+    <div class="api-key-note">
+      🔒 Stockée uniquement dans ton navigateur.<br>
+      💚 Gratuit — pas de CB, pas de restriction géographique.
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <div class="panel">
+    <div class="panel-header"><div class="step-num">1</div><div class="panel-title">Vérifier si déjà fait</div></div>
+    <div class="panel-body">
+      <label>Titre ou artiste à rechercher</label>
+      <input type="text" id="search-input" placeholder="Ex: Waly Dia, La gifle, LRDP..." oninput="checkVideo(this.value)">
+      <div id="check-status" class="status-box"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><div class="step-num">2</div><div class="panel-title">Coller la transcription</div></div>
+    <div class="panel-body">
+      <label>Transcription YouTube</label>
+      <textarea id="transcription" placeholder="Colle ici la transcription copiée depuis YouTube (bouton Afficher la transcription)..."></textarea>
+      <button class="btn btn-primary" id="gen-btn" onclick="generateContent()">⚡ Générer titre + voix off</button>
+      <div class="loader" id="loader"><div class="spinner"></div><span>Analyse en cours...</span></div>
+    </div>
+  </div>
+
+  <div class="panel" id="results-panel" style="display:none">
+    <div class="panel-header"><div class="step-num">3</div><div class="panel-title">Résultats générés</div></div>
+    <div class="panel-body" id="results-body"></div>
+  </div>
+
+  <div class="panel" id="save-panel" style="display:none">
+    <div class="panel-header"><div class="step-num">4</div><div class="panel-title">Sauvegarder dans le suivi</div></div>
+    <div class="panel-body">
+      <div class="save-row">
+        <div><label>Artiste</label><input type="text" id="save-artist" placeholder="Artiste"></div>
+        <div><label>Titre original</label><input type="text" id="save-original" placeholder="Titre original"></div>
+        <div><label>Nouveau titre</label><input type="text" id="save-newtitle" placeholder="Nouveau titre généré"></div>
+        <div><label>Chaîne</label><input type="text" id="save-chain" readonly></div>
+      </div>
+      <button class="btn btn-primary" id="save-btn" onclick="saveVideo()">✅ Ajouter au suivi</button>
+      <div id="save-status" class="status-box"></div>
+    </div>
+  </div>
+
+  <div class="history-panel">
+    <div class="panel-header">
+      <div class="panel-title">📋 Suivi des vidéos — Google Sheets</div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <span id="total-count" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">—</span>
+        <button class="pill" onclick="loadVideos()">↻ Actualiser</button>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="history-search" placeholder="Rechercher..." oninput="filterHistory(this.value)">
+      <div class="chain-pills" style="margin-left:0">
+        <button class="pill active" data-filter="all" onclick="filterByChain('all',this)">Toutes</button>
+        <button class="pill" data-filter="Instant Vanne" onclick="filterByChain('Instant Vanne',this)">C1</button>
+        <button class="pill" data-filter="La Dose du Rire" onclick="filterByChain('La Dose du Rire',this)">C2</button>
+        <button class="pill" data-filter="Rire Express" onclick="filterByChain('Rire Express',this)">C3</button>
+      </div>
+    </div>
+    <div id="history-container"><div class="empty-state">⏳ Chargement depuis Google Sheets...</div></div>
+  </div>
+
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVjqnXlxyd3VQPpGUz64CZEOyCSN1QREFKq8eo80fYPrqCkPVOEdpBUnLj6w6hJQgtCw/exec';
+const CHAIN_NAMES = {1:'Instant Vanne',2:'La Dose du Rire',3:'Rire Express'};
+const PROMPT = `Ton rôle : Tu es un assistant expert en analyse de contenu humoristique, particulièrement pour les spectacles de stand-up. Tu es spécialisé dans l'extraction de timecodes, la création de titres accrocheurs dans un format précis, et la rédaction de contextes courts pour voix off.
+
+Format de réponse obligatoire :
+Timecode : Toujours indiquer Début : [heure:minute:seconde] et Fin : [heure:minute:seconde].
+Titre : Créer un titre dans le format exact : [Sujet Principal] & [Sujet Secondaire] | [Nom de l'humoriste] Humour. Les sujets doivent être politiques, sociétaux ou "chocs".
+Contexte (voix off) : Rédiger un texte court sur le modèle : « Dans cette vidéo, [Nom de l'humoriste] [verbe d'action] avec humour [sujet/situation]. Bon visionnage et force à [Nom de l'humoriste]. »
+
+Consignes :
+Traite une seule transcription à la fois.
+Identifie toujours l'humoriste.
+Ne fais pas de commentaires supplémentaires.
+Sois concis et efficace.
+
+Exemples de titres :
+La Police & Les Banlieues | Dieudonné Humour
+Les Médias & La Vérité | Waly Dia Humour
+Le Gouvernement & Les Impôts | Naïm Humour
+La Société & Les Réseaux | Elodie Poux Humour
+
+Voici la transcription :`;
+
+let currentChain = 1, currentFilter = 'all', videos = [];
+
+// ── SHEETS ────────────────────────────────────────────────────────────────
+async function sheetsGet() {
+  const res = await fetch(SCRIPT_URL + '?action=getAll');
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+async function sheetsAdd(entry) {
+  await fetch(SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'add',...entry})});
+}
+async function sheetsDelete(id) {
+  await fetch(SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'delete',id})});
+}
+async function loadVideos() {
+  document.getElementById('history-container').innerHTML =
+    '<div class="empty-state">⏳ Chargement depuis Google Sheets...</div>';
+  try {
+    videos = await sheetsGet();
+    renderHistory();
+  } catch(e) {
+    document.getElementById('history-container').innerHTML =
+      '<div class="empty-state" style="color:var(--danger)">❌ Impossible de charger. Vérifie le Apps Script.</div>';
+  }
+}
+
+// ── CLÉ API ───────────────────────────────────────────────────────────────
+function getApiKey() { return localStorage.getItem('studio_api_key') || ''; }
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key.startsWith('gsk_')) { alert('La clé Groq doit commencer par gsk_...'); return; }
+  localStorage.setItem('studio_api_key', key);
+  document.getElementById('api-modal').style.display = 'none';
+  updateKeyIndicator();
+}
+function updateKeyIndicator() {
+  const key = getApiKey();
+  document.getElementById('key-dot').classList.toggle('off', !key);
+  document.getElementById('key-label').textContent = key ? 'gsk_••••' : 'Clé API';
+}
+function showApiModal() {
+  document.getElementById('api-key-input').value = getApiKey();
+  document.getElementById('api-modal').style.display = 'flex';
+}
+document.getElementById('api-modal').addEventListener('click', function(e) {
+  if (e.target === this && getApiKey()) this.style.display = 'none';
+});
+
+// ── CHAÎNE ────────────────────────────────────────────────────────────────
+function selectChain(n) {
+  currentChain = n;
+  document.querySelectorAll('.pill[data-chain]').forEach(p =>
+    p.classList.toggle('active', parseInt(p.dataset.chain) === n));
+  document.getElementById('save-chain').value = CHAIN_NAMES[n];
+}
+
+// ── VÉRIFICATION ──────────────────────────────────────────────────────────
+function checkVideo(q) {
+  const box = document.getElementById('check-status');
+  if (!q.trim()) { box.className = 'status-box'; return; }
+  const term = q.toLowerCase();
+  const matches = videos.filter(v =>
+    (v.artist||'').toLowerCase().includes(term) ||
+    (v.original||'').toLowerCase().includes(term) ||
+    (v.newtitle||'').toLowerCase().includes(term));
+  if (matches.length > 0) {
+    box.className = 'status-box status-warn';
+    box.innerHTML = `⚠️ <strong>${matches.length} vidéo(s) déjà faite(s)</strong> :<br>` +
+      matches.map(m=>`→ <em>${m.artist}</em> — "${m.original}" sur <strong>${m.chain}</strong> (${m.date})`).join('<br>');
+  } else if (q.length > 2) {
+    box.className = 'status-box status-ok';
+    box.innerHTML = '✓ Pas de doublon — vidéo disponible !';
+  } else { box.className = 'status-box'; }
+}
+
+// ── GÉNÉRATION ────────────────────────────────────────────────────────────
+async function generateContent() {
+  const transcription = document.getElementById('transcription').value.trim();
+  if (!transcription) { alert('Colle d\'abord la transcription !'); return; }
+  const apiKey = getApiKey();
+  if (!apiKey) { showApiModal(); return; }
+  const btn = document.getElementById('gen-btn');
+  const loader = document.getElementById('loader');
+  btn.disabled = true; loader.classList.add('visible');
+  document.getElementById('results-panel').style.display = 'none';
+  document.getElementById('save-panel').style.display = 'none';
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+      body: JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1000,
+        messages:[{role:'user',content:PROMPT+'\n\n'+transcription}]})
+    });
+    if (!res.ok) { const e=await res.json(); throw new Error(e.error?.message||`Erreur ${res.status}`); }
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content || '';
+    if (!text) throw new Error('Réponse vide');
+    parseAndDisplay(text);
+  } catch(err) {
+    document.getElementById('results-panel').style.display = 'block';
+    document.getElementById('results-body').innerHTML =
+      `<div class="status-box status-warn" style="display:block">❌ ${err.message}</div>`;
+  }
+  btn.disabled = false; loader.classList.remove('visible');
+}
+
+function parseAndDisplay(text) {
+  document.getElementById('results-panel').style.display = 'block';
+  const tcM = text.match(/D[ée]but\s*:\s*([^\n]+)\s*Fin\s*:\s*([^\n]+)/i);
+  const tiM = text.match(/Titre\s*:\s*([^\n]+)/i);
+  const voM = text.match(/Contexte.*?:\s*([\s\S]+?)(?:\n\n|$)/i);
+  const tc = tcM ? `Début : ${tcM[1].trim()}  →  Fin : ${tcM[2].trim()}` : null;
+  const ti = tiM ? tiM[1].trim() : null;
+  const vo = voM ? voM[1].trim() : null;
+  let html = '';
+  if (tc) html += `<div class="result-block"><div class="result-label">⏱ Timecode</div><div class="timecode">${tc}</div><button class="copy-btn" onclick="copyText(this,'${tc.replace(/'/g,"\\'")}')">copier</button></div>`;
+  if (ti) html += `<div class="result-block" style="margin-top:10px"><div class="result-label">🎬 Nouveau titre</div><div class="result-text" style="font-weight:600">${ti}</div><button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${ti.replace(/"/g,'&quot;')}">copier</button></div>`;
+  if (vo) html += `<div class="result-block" style="margin-top:10px"><div class="result-label">🎙 Voix off</div><div class="result-text">${vo}</div><button class="copy-btn" onclick="copyText(this,this.dataset.val)" data-val="${vo.replace(/"/g,'&quot;')}">copier</button></div>`;
+  if (!tc&&!ti&&!vo) html = `<div class="result-block"><div class="result-text" style="white-space:pre-wrap">${text}</div></div>`;
+  document.getElementById('results-body').innerHTML = html;
+  if (ti) {
+    document.getElementById('save-newtitle').value = ti;
+    const a = ti.match(/\|\s*(.+?)\s*Humour/i);
+    if (a) document.getElementById('save-artist').value = a[1].trim();
+  }
+  document.getElementById('save-chain').value = CHAIN_NAMES[currentChain];
+  document.getElementById('save-panel').style.display = 'block';
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ copié'; btn.style.background='var(--accent)'; btn.style.color='#0e0e0e';
+    setTimeout(()=>{btn.textContent='copier';btn.style.background='';btn.style.color='';},1500);
+  });
+}
+
+// ── SAUVEGARDE ────────────────────────────────────────────────────────────
+async function saveVideo() {
+  const artist   = document.getElementById('save-artist').value.trim();
+  const original = document.getElementById('save-original').value.trim();
+  const newtitle = document.getElementById('save-newtitle').value.trim();
+  const s = document.getElementById('save-status');
+  if (!artist || !original) {
+    s.className='status-box status-warn'; s.textContent="Remplis au moins l'artiste et le titre original."; return;
+  }
+  const btn = document.getElementById('save-btn');
+  btn.disabled=true; btn.textContent='⏳ Sauvegarde en cours...';
+  try {
+    await sheetsAdd({chain:CHAIN_NAMES[currentChain],artist,original,newtitle,date:new Date().toLocaleDateString('fr-FR')});
+    await loadVideos();
+    s.className='status-box status-ok';
+    s.textContent=`✓ Ajouté dans Google Sheets — ${CHAIN_NAMES[currentChain]}`;
+    document.getElementById('save-artist').value='';
+    document.getElementById('save-original').value='';
+    document.getElementById('save-newtitle').value='';
+    document.getElementById('transcription').value='';
+    document.getElementById('results-panel').style.display='none';
+    checkVideo(document.getElementById('search-input').value);
+    setTimeout(()=>{s.className='status-box';document.getElementById('save-panel').style.display='none';},3000);
+  } catch(e) {
+    s.className='status-box status-warn'; s.textContent='❌ Erreur lors de la sauvegarde. Réessaie.';
+  }
+  btn.disabled=false; btn.textContent='✅ Ajouter au suivi';
+}
+
+// ── HISTORIQUE ────────────────────────────────────────────────────────────
+function renderHistory(filterTerm, chainFilter) {
+  const term  = (filterTerm ?? document.getElementById('history-search').value).toLowerCase();
+  const chain = chainFilter ?? currentFilter;
+  const cc = {'Instant Vanne':'c1','La Dose du Rire':'c2','Rire Express':'c3'};
+  let filtered = videos.filter(v => {
+    const mc = chain==='all' || v.chain===chain;
+    const mt = !term || (v.artist||'').toLowerCase().includes(term) ||
+      (v.original||'').toLowerCase().includes(term) || (v.newtitle||'').toLowerCase().includes(term);
+    return mc && mt;
+  });
+  document.getElementById('total-count').textContent = `${videos.length} vidéo${videos.length>1?'s':''}`;
+  const c = document.getElementById('history-container');
+  if (filtered.length===0) {
+    c.innerHTML=`<div class="empty-state">${videos.length===0?'Aucune vidéo enregistrée.<br>Génère et sauvegarde ta première vidéo.':'Aucun résultat.'}</div>`;
+    return;
+  }
+  c.innerHTML=`<table class="history-table"><thead><tr>
+    <th>Chaîne</th><th>Artiste</th><th>Titre original</th><th>Nouveau titre</th><th>Date</th><th></th>
+  </tr></thead><tbody>${filtered.map(v=>`<tr>
+    <td><span class="chain-badge ${cc[v.chain]||'c1'}">${v.chain}</span></td>
+    <td style="color:var(--muted);font-size:12px">${v.artist||''}</td>
+    <td>${v.original||''}</td>
+    <td style="color:var(--accent2)">${v.newtitle||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${v.date||''}</td>
+    <td><button class="del-btn" onclick="deleteVideo('${v.id}')">✕</button></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+function filterHistory(term) { renderHistory(term, currentFilter); }
+function filterByChain(chain, btn) {
+  currentFilter = chain;
+  document.querySelectorAll('.pill[data-filter]').forEach(p=>p.classList.toggle('active',p.dataset.filter===chain));
+  renderHistory(document.getElementById('history-search').value, chain);
+}
+async function deleteVideo(id) {
+  if (!confirm('Supprimer cette vidéo ?')) return;
+  try { await sheetsDelete(id); await loadVideos(); }
+  catch(e) { alert('Erreur lors de la suppression.'); }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+selectChain(1);
+if (!getApiKey()) { document.getElementById('api-modal').style.display='flex'; }
+else { document.getElementById('api-modal').style.display='none'; updateKeyIndicator(); }
+loadVideos();
+</script>
+</body>
+</html>
